@@ -46,4 +46,5 @@ export interface AthleteData {
 
 export interface IAthleteRepository {
   getAthleteData(): Promise<AthleteData>;
+  getAthletes(): Promise<AthleteData[]>;
 }

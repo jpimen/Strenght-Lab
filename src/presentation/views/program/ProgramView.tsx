@@ -1,9 +1,11 @@
+import { useParams } from 'react-router-dom';
 import { useProgramViewModel } from '../../viewmodels/useProgramViewModel';
 import { User, Calendar, Target, Bold, Italic, Type, AlignLeft, PlusSquare, History, PlayCircle, X, Repeat } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function ProgramView() {
-  const { data, isLoading } = useProgramViewModel();
+  const { athleteId } = useParams<{ athleteId: string }>();
+  const { data, isLoading } = useProgramViewModel(athleteId);
 
   if (isLoading || !data) return <div className="p-8 text-iron-red animate-pulse">LOADING_PROGRAM_DATA...</div>;
 

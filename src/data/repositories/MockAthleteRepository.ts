@@ -50,9 +50,58 @@ const mockAthlete: AthleteData = {
   ]
 };
 
+const mockAthletes: AthleteData[] = [
+  {
+    ...mockAthlete,
+    id: 'a1',
+    name: 'MARCUS VANCE',
+    idEntry: 'ATH-9841-C',
+    status: 'ACTIVE',
+    massClass: 93.4,
+    currentProtocol: 'JUGGERNAUT_V3',
+    maxStats: {
+      squat: { weight: 245.0, statusText: 'STABLE', statusColor: 'gray' },
+      bench: { weight: 167.5, statusText: 'STABLE', statusColor: 'gray' },
+      deadlift: { weight: 290.0, statusText: 'STABLE', statusColor: 'gray' },
+    }
+  },
+  {
+    ...mockAthlete,
+    id: 'a2',
+    name: 'ELARA KOSS',
+    idEntry: 'ATH-2287-B',
+    status: 'INACTIVE',
+    massClass: 62.1,
+    currentProtocol: 'NONE_ASSIGNED',
+    maxStats: {
+      squat: { weight: 142.5, statusText: 'STABLE', statusColor: 'gray' },
+      bench: { weight: 85.0, statusText: 'STABLE', statusColor: 'gray' },
+      deadlift: { weight: 182.5, statusText: 'STABLE', statusColor: 'gray' },
+    }
+  },
+  {
+    ...mockAthlete,
+    id: 'a3',
+    name: 'JORDAN REID',
+    idEntry: 'ATH-1155-X',
+    status: 'ACTIVE',
+    massClass: 105.8,
+    currentProtocol: 'PEAK_FORCE_4',
+    maxStats: {
+      squat: { weight: 280.0, statusText: 'STABLE', statusColor: 'gray' },
+      bench: { weight: 192.5, statusText: 'STABLE', statusColor: 'gray' },
+      deadlift: { weight: 315.0, statusText: 'STABLE', statusColor: 'gray' },
+    }
+  }
+];
+
 export class MockAthleteRepository implements IAthleteRepository {
   async getAthleteData(): Promise<AthleteData> {
     return new Promise(resolve => setTimeout(() => resolve(mockAthlete), 300));
+  }
+
+  async getAthletes(): Promise<AthleteData[]> {
+    return new Promise(resolve => setTimeout(() => resolve(mockAthletes), 300));
   }
 }
 

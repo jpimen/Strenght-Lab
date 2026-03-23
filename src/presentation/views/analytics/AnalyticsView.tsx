@@ -59,11 +59,13 @@ const athleteConsistency: AthleteEntry[] = [
 const filters = ['LAST_30_DAYS', 'TEAM: ALL_UNITS', 'PROG: HYPERTROPHY_B'];
 
 /* ─── custom tooltip ─── */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload) return null;
   return (
     <div className="bg-iron-900 text-white text-[11px] font-mono px-3 py-2 shadow-md border border-iron-800">
       <div className="tracking-widest mb-1 text-gray-400">{label}</div>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {payload.map((p: any) => (
         <div key={p.dataKey} className="flex justify-between gap-4">
           <span style={{ color: p.color }}>{p.dataKey}</span>
@@ -187,6 +189,7 @@ export default function AnalyticsView() {
                   <Cell key={idx} fill={entry.isPeak ? '#dc2626' : '#e5e7eb'} />
                 ))}
                 <LabelList
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   dataKey={(entry: any) => entry.isPeak ? 'PEAK' : null}
                   position="top"
                   style={{ fontSize: 9, fill: '#dc2626', fontWeight: 800, fontFamily: 'monospace' }}

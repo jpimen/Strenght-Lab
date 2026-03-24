@@ -4,7 +4,7 @@
  * Integrates all sub-components into a cohesive program building experience
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   RotateCcw,
   RotateCw,
@@ -15,6 +15,7 @@ import {
 import { FormulaBar } from './FormulaBar';
 import { VariablesPanel } from './VariablesPanel';
 import { SheetGrid } from './SheetGrid';
+import type { SheetGridColumn } from './SheetGrid';
 import { ColumnSummaryBar } from './ColumnSummaryBar';
 import { AutocompleteDropdown } from './AutocompleteDropdown';
 import { ContextMenu } from './ContextMenu';
@@ -29,8 +30,26 @@ import {
   resolveAll,
   getErrorCells,
 } from '../utils/formulaEngine';
-import { getAutocompleteSuggestions, type AutocompleteOption } from '../utils/autocomplete';
+import { getAutocompleteSuggestions } from '../utils/autocomplete';
+import type { AutocompleteOption } from '../utils/autocomplete';
 import { templates } from '../utils/templates';
+
+const buildInitialCells = (weeks: number): CellState => {
+  const newCells: CellState = {};
+  for (let w = 1; w <= weeks; w++) {
+    for (let d = 1; d <= 3; d++) {
+      for (let r = 0; r < 5; r++) {
+        const baseKey = `W${w}_D${d}_R${r}`;
+        newCells[`${baseKey}_sets`] = { raw: '', resolved: '', error: null };
+        newCells[`${baseKey}_reps`] = { raw: '', resolved: '', error: null };
+        newCells[`${baseKey}_intensity`] = { raw: '', resolved: '', error: null };
+        newCells[`${baseKey}_rest`] = { raw: '', resolved: '', error: null };
+        newCells[`${baseKey}_load`] = { raw: '', resolved: '', error: null };
+      }
+    }
+  }
+  return newCells;
+};
 
 interface ProgramBuilderProps {
   initialWeeks?: number;
@@ -40,8 +59,22 @@ interface ProgramBuilderProps {
 export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
   initialWeeks = 4,
 }) => {
+  const defaultColumns: SheetGridColumn[] = [
+    { key: 'week_day', label: 'WEEK/DAY', width: '100px' },
+    { key: 'exercise', label: 'EXERCISE', width: '180px' },
+    { key: 'sets', label: 'SETS', width: '70px' },
+    { key: 'reps', label: 'REPS', width: '70px' },
+    { key: 'intensity', label: 'INTENSITY (%)', width: '90px' },
+    { key: 'rest', label: 'REST (MIN)', width: '90px' },
+    { key: 'load', label: 'LOAD (kg)', width: '90px' },
+    { key: 'tonnage', label: 'TONNAGE', width: '100px' },
+    { key: 'notes', label: 'NOTES', width: '200px' },
+  ];
+
   // Core sheet state
-  const [cells, setCells] = useState<CellState>({});
+  const [cells, setCells] = useState<CellState>(() => buildInitialCells(initialWeeks));
+  const [columns, setColumns] = useState<SheetGridColumn[]>(defaultColumns);
+  const [rowLabels, setRowLabels] = useState<Record<string, string>>({});
   const [variables, setVariables] = useState<VariableState>({
     SQ_1RM: 315,
     BP_1RM: 225,
@@ -53,12 +86,9 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
 
   // UI state
   const [activeCell, setActiveCell] = useState<string | null>(null);
+  const [, setEditingCell] = useState<string | null>(null);
   const [formulaBar, setFormulaBar] = useState('');
   const [selectionRange] = useState<SelectionRange | null>(null);
-  
-  // Custom Labels
-  const [rowLabels, setRowLabels] = useState<Record<string, string>>({});
-  const [columnLabels, setColumnLabels] = useState<Record<string, string>>({});
 
   // Undo/redo state
   const [past, setPast] = useState<CellState[]>([]);
@@ -81,32 +111,17 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize with empty cells
-  useEffect(() => {
-    const newCells: CellState = {};
-    for (let w = 1; w <= initialWeeks; w++) {
-      for (let d = 1; d <= 3; d++) {
-        for (let r = 0; r < 5; r++) {
-          const baseKey = `W${w}_D${d}_R${r}`;
-          newCells[`${baseKey}_sets`] = { raw: '', resolved: '', error: null };
-          newCells[`${baseKey}_reps`] = { raw: '', resolved: '', error: null };
-          newCells[`${baseKey}_intensity`] = { raw: '', resolved: '', error: null };
-          newCells[`${baseKey}_rest`] = { raw: '', resolved: '', error: null };
-          newCells[`${baseKey}_load`] = { raw: '', resolved: '', error: null };
-        }
+  // Sync grid selection with formula bar
+  const handleSelectCell = useCallback(
+    (key: string) => {
+      setActiveCell(key);
+      if (cells[key]) {
+        setFormulaBar(cells[key].raw);
+        setEditingCell(key);
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    setCells(newCells);
-  }, [initialWeeks]);
-
-  // Update formula bar when active cell changes
-  useEffect(() => {
-    if (activeCell && cells[activeCell]) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      setFormulaBar(cells[activeCell].raw);
-    }
-  }, [activeCell, cells]);
+    },
+    [cells]
+  );
 
   // Handle cell value changes
   const handleValueChange = useCallback(
@@ -138,6 +153,7 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
     (value: string) => {
       if (activeCell) {
         handleValueChange(activeCell, value);
+        setEditingCell(null);
         setFormulaBar('');
         setShowAutocomplete(false);
       }
@@ -362,16 +378,21 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
           {/* Sheet Grid */}
           <SheetGrid
             cells={cells}
-            rowLabels={rowLabels}
-            onRowLabelChange={(key, val) => setRowLabels(prev => ({ ...prev, [key]: val }))}
-            columnLabels={columnLabels}
-            onColumnLabelChange={(key, val) => setColumnLabels(prev => ({ ...prev, [key]: val }))}
-            readonlyColumns={[]}
             activeCell={activeCell}
             selectionRange={selectionRange}
-            onCellClick={setActiveCell}
-            onCellDoubleClick={() => {}}
+            onCellClick={handleSelectCell}
+            onCellDoubleClick={handleSelectCell}
             onValueChange={handleValueChange}
+            columns={columns}
+            onColumnChange={(key, next) => {
+              setColumns((prev) =>
+                prev.map((col) => (col.key === key ? { ...col, ...next } : col))
+              );
+            }}
+            rowLabels={rowLabels}
+            onRowLabelChange={(key, label) => {
+              setRowLabels((prev) => ({ ...prev, [key]: label }));
+            }}
             weekCount={initialWeeks}
             dayCount={3}
             exerciseCount={5}
@@ -402,6 +423,7 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
 
       {/* Autocomplete Dropdown */}
       <AutocompleteDropdown
+        key={autocompleteOptions.map((opt) => opt.value).join('|')}
         options={autocompleteOptions}
         visible={showAutocomplete}
         onSelect={handleAutocompleteSelect}

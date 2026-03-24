@@ -3,12 +3,12 @@
  * Main spreadsheet grid with cells, headers, and interactions
  */
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useRef, useCallback, useMemo, useState } from 'react';
 import { SheetCell } from './SheetCell';
 import type { CellState, SelectionRange } from '../types/spreadsheet';
 import { buildDependencyGraph, getDependencies, getDependents } from '../utils/formulaEngine';
 
-interface SheetGridColumn {
+export interface SheetGridColumn {
   key: string;
   label: string;
   width: string;
@@ -21,12 +21,11 @@ interface SheetGridProps {
   onCellClick: (key: string) => void;
   onCellDoubleClick: (key: string) => void;
   onValueChange: (key: string, value: string) => void;
-  rowLabels?: Record<string, string>;
-  onRowLabelChange?: (key: string, value: string) => void;
-  columnLabels?: Record<string, string>;
-  onColumnLabelChange?: (key: string, value: string) => void;
   readonlyColumns?: string[];
   columns?: SheetGridColumn[];
+  onColumnChange?: (key: string, next: Partial<SheetGridColumn>) => void;
+  rowLabels?: Record<string, string>;
+  onRowLabelChange?: (key: string, nextLabel: string) => void;
   weekCount?: number;
   dayCount?: number;
   exerciseCount?: number;
@@ -39,17 +38,21 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   onCellClick,
   onCellDoubleClick,
   onValueChange,
-  rowLabels,
-  onRowLabelChange,
-  columnLabels,
-  onColumnLabelChange,
   readonlyColumns = ['load', 'tonnage'],
   columns = [],
+  onColumnChange,
+  rowLabels = {},
+  onRowLabelChange,
   weekCount = 4,
   dayCount = 3,
   exerciseCount = 5,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [editingColumnKey, setEditingColumnKey] = useState<string | null>(null);
+  const [columnEditValue, setColumnEditValue] = useState('');
+  const [columnWidthValue, setColumnWidthValue] = useState('');
+  const [editingRowKey, setEditingRowKey] = useState<string | null>(null);
+  const [rowEditValue, setRowEditValue] = useState('');
   
   const dependencyGraph = buildDependencyGraph(cells);
 
@@ -62,59 +65,58 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
     if (!activeCell) return [];
     return getDependents(activeCell, dependencyGraph);
   }, [activeCell, dependencyGraph]);
-  const defaultColumns: SheetGridColumn[] = [
-    { key: 'week_day', label: 'WEEK/DAY', width: '100px' },
-    { key: 'exercise', label: 'EXERCISE', width: '180px' },
-    { key: 'sets', label: 'SETS', width: '70px' },
-    { key: 'reps', label: 'REPS', width: '70px' },
-    { key: 'intensity', label: 'INTENSITY (%)', width: '90px' },
-    { key: 'rest', label: 'REST (MIN)', width: '90px' },
-    { key: 'load', label: 'LOAD (kg)', width: '90px' },
-    { key: 'tonnage', label: 'TONNAGE', width: '100px' },
-    { key: 'notes', label: 'NOTES', width: '200px' },
-  ];
+  const displayColumns = useMemo(() => (columns.length > 0 ? columns : []), [columns]);
 
-  const displayColumns = columns.length > 0 ? columns : defaultColumns;
+  const startEditColumn = (col: SheetGridColumn) => {
+    if (!onColumnChange) return;
+    setEditingColumnKey(col.key);
+    setColumnEditValue(col.label);
+    setColumnWidthValue(col.width);
+  };
 
-  const [colWidths, setColWidths] = useState<Record<string, number>>({});
-  const [rowHeights, setRowHeights] = useState<Record<number, number>>({});
-  
-  const [resizingCol, setResizingCol] = useState<{ key: string; startX: number; startWidth: number } | null>(null);
-  const [resizingRow, setResizingRow] = useState<{ index: number; startY: number; startHeight: number } | null>(null);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (resizingCol) {
-        setColWidths(prev => ({ ...prev, [resizingCol.key]: Math.max(50, resizingCol.startWidth + (e.clientX - resizingCol.startX)) }));
-      } else if (resizingRow) {
-        setRowHeights(prev => ({ ...prev, [resizingRow.index]: Math.max(24, resizingRow.startHeight + (e.clientY - resizingRow.startY)) }));
+  const commitEditColumn = () => {
+    if (editingColumnKey && onColumnChange) {
+      const next: Partial<SheetGridColumn> = { label: columnEditValue.trim() || ' ' };
+      if (columnWidthValue.trim()) {
+        next.width = columnWidthValue.trim();
       }
-    };
-    const handleMouseUp = () => {
-      setResizingCol(null);
-      setResizingRow(null);
-    };
-
-    if (resizingCol || resizingRow) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      onColumnChange(editingColumnKey, next);
     }
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [resizingCol, resizingRow]);
+    setEditingColumnKey(null);
+    setColumnEditValue('');
+    setColumnWidthValue('');
+  };
 
-  const getColWidth = (col: SheetGridColumn) => {
-    return colWidths[col.key] || parseInt(col.width, 10) || 100;
+  const cancelEditColumn = () => {
+    setEditingColumnKey(null);
+    setColumnEditValue('');
+    setColumnWidthValue('');
+  };
+
+  const startEditRow = (rowKey: string, currentLabel: string) => {
+    if (!onRowLabelChange) return;
+    setEditingRowKey(rowKey);
+    setRowEditValue(currentLabel);
+  };
+
+  const commitEditRow = () => {
+    if (editingRowKey && onRowLabelChange) {
+      onRowLabelChange(editingRowKey, rowEditValue.trim());
+    }
+    setEditingRowKey(null);
+    setRowEditValue('');
+  };
+
+  const cancelEditRow = () => {
+    setEditingRowKey(null);
+    setRowEditValue('');
   };
 
   // Generate cell keys for the grid
   const generateGridData = useCallback(() => {
     const data: Array<{
-      isFirstInDay: boolean;
-      dayKey: string;
-      defaultLabel: string;
+      rowLabel: string;
+      rowKey: string;
       cells: Array<{ key: string; field: string }>;
     }> = [];
 
@@ -122,13 +124,11 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
       for (let d = 1; d <= dayCount; d++) {
         for (let r = 0; r < exerciseCount; r++) {
           const baseKey = `W${w}_D${d}_R${r}`;
-          const dayKey = `W${w}_D${d}`;
-          const defaultLabel = `W${w} D${d}`;
+          const rowLabel = rowLabels[baseKey] ?? (r === 0 ? `W${w} D${d}` : '');
 
           data.push({
-            isFirstInDay: r === 0,
-            dayKey,
-            defaultLabel,
+            rowLabel,
+            rowKey: baseKey,
             cells: displayColumns.map((col) => ({
               key: `${baseKey}_${col.key}`,
               field: col.key,
@@ -139,7 +139,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
     }
 
     return data;
-  }, [weekCount, dayCount, exerciseCount, displayColumns]);
+  }, [weekCount, dayCount, exerciseCount, displayColumns, rowLabels]);
 
   const gridData = useMemo(() => generateGridData(), [generateGridData]);
 
@@ -160,23 +160,25 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
     let nextKey: string | null = null;
 
     switch (e.key) {
-      case 'ArrowUp': {
-        const prevCellIndex = cellIndex - displayColumns.length;
-        if (prevCellIndex >= 0) {
-          nextKey = gridData.flatMap((r) => r.cells)[prevCellIndex]?.key;
+      case 'ArrowUp':
+        {
+          const prevCellIndex = cellIndex - displayColumns.length;
+          if (prevCellIndex >= 0) {
+            nextKey = gridData.flatMap((r) => r.cells)[prevCellIndex]?.key;
+          }
+          e.preventDefault();
         }
-        e.preventDefault();
         break;
-      }
 
-      case 'ArrowDown': {
-        const nextCellIndex = cellIndex + displayColumns.length;
-        if (nextCellIndex < gridData.flatMap((r) => r.cells).length) {
-          nextKey = gridData.flatMap((r) => r.cells)[nextCellIndex]?.key;
+      case 'ArrowDown':
+        {
+          const nextCellIndex = cellIndex + displayColumns.length;
+          if (nextCellIndex < gridData.flatMap((r) => r.cells).length) {
+            nextKey = gridData.flatMap((r) => r.cells)[nextCellIndex]?.key;
+          }
+          e.preventDefault();
         }
-        e.preventDefault();
         break;
-      }
 
       case 'ArrowLeft':
         // Move to previous column
@@ -216,23 +218,39 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
             {displayColumns.map((col) => (
               <th
                 key={col.key}
-                style={{ width: `${getColWidth(col)}px`, minWidth: `${getColWidth(col)}px` }}
-                className="relative px-3 py-2 text-left font-mono text-[9px] font-bold tracking-widest uppercase text-gray-700 bg-gray-50 border-r border-gray-200 last:border-0"
+                style={{ width: col.width }}
+                className="px-3 py-2 text-left font-mono text-[9px] font-bold tracking-widest uppercase text-gray-700 bg-gray-50 border-r border-gray-200 last:border-0"
               >
-                <input
-                  type="text"
-                  value={columnLabels?.[col.key] ?? col.label}
-                  onChange={(e) => onColumnLabelChange?.(col.key, e.target.value)}
-                  className="bg-transparent border-none outline-none w-full uppercase placeholder:text-gray-400 focus:ring-1 focus:ring-iron-900 focus:bg-white px-1 -mx-1"
-                  placeholder={col.label}
-                />
-                <div
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    setResizingCol({ key: col.key, startX: e.clientX, startWidth: getColWidth(col) });
-                  }}
-                  className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-orange-500 z-10"
-                />
+                {editingColumnKey === col.key ? (
+                  <div className="flex flex-col gap-1">
+                    <input
+                      value={columnEditValue}
+                      onChange={(e) => setColumnEditValue(e.target.value)}
+                      className="w-full bg-white border border-gray-300 text-[10px] font-mono px-1 py-0.5 uppercase"
+                      autoFocus
+                    />
+                    <input
+                      value={columnWidthValue}
+                      onChange={(e) => setColumnWidthValue(e.target.value)}
+                      placeholder="e.g. 120px"
+                      className="w-full bg-white border border-gray-300 text-[10px] font-mono px-1 py-0.5"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') commitEditColumn();
+                        if (e.key === 'Escape') cancelEditColumn();
+                      }}
+                      onBlur={commitEditColumn}
+                    />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onDoubleClick={() => startEditColumn(col)}
+                    className="w-full text-left"
+                    title="Double-click to rename or resize column"
+                  >
+                    {col.label}
+                  </button>
+                )}
               </th>
             ))}
           </tr>
@@ -243,28 +261,32 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
           {gridData.map((row, rowIdx) => (
             <tr
               key={`row-${rowIdx}`}
-              style={{ height: rowHeights[rowIdx] ? `${rowHeights[rowIdx]}px` : undefined }}
               className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
             >
               {/* Row label */}
-              <td className="relative w-12 px-2 py-2 bg-gray-50 border-r border-gray-200 text-center">
-                {row.isFirstInDay && (
+              <td className="w-20 px-2 py-2 bg-gray-50 border-r border-gray-200 text-left">
+                {editingRowKey === row.rowKey ? (
                   <input
-                    type="text"
-                    value={rowLabels?.[row.dayKey] ?? row.defaultLabel}
-                    onChange={(e) => onRowLabelChange?.(row.dayKey, e.target.value)}
-                    className="w-full bg-transparent border-none outline-none font-mono text-[9px] font-bold text-gray-500 text-center focus:ring-1 focus:ring-iron-900 focus:bg-white px-1 -mx-1"
-                    placeholder={row.defaultLabel}
+                    value={rowEditValue}
+                    onChange={(e) => setRowEditValue(e.target.value)}
+                    onBlur={commitEditRow}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') commitEditRow();
+                      if (e.key === 'Escape') cancelEditRow();
+                    }}
+                    className="w-full bg-white border border-gray-300 text-[10px] font-mono px-1 py-0.5"
+                    autoFocus
                   />
+                ) : (
+                  <button
+                    type="button"
+                    onDoubleClick={() => startEditRow(row.rowKey, row.rowLabel || row.rowKey)}
+                    className="w-full text-left font-mono text-[9px] font-bold text-gray-500"
+                    title="Double-click to rename row"
+                  >
+                    {row.rowLabel}
+                  </button>
                 )}
-                <div
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    const currentHeight = rowHeights[rowIdx] || e.currentTarget.parentElement?.offsetHeight || 36;
-                    setResizingRow({ index: rowIdx, startY: e.clientY, startHeight: currentHeight });
-                  }}
-                  className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize hover:bg-orange-500 z-10"
-                />
               </td>
 
               {/* Cells */}
@@ -296,7 +318,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
                     onCellDoubleClick={onCellDoubleClick}
                     onValueChange={onValueChange}
                     onKeyDown={handleKeyDown}
-                    width={colDef ? `${getColWidth(colDef)}px` : undefined}
+                    width={colDef?.width}
                   />
                 );
               })}

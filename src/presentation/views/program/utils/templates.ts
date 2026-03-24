@@ -11,12 +11,11 @@ import type { CellState, TemplateDefinition, VariableState } from '../types/spre
  */
 export const linearProgressionTemplate: TemplateDefinition = {
   name: 'Linear Progression',
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  generate: (_weeks: number, variables: VariableState | null): CellState => {
+  generate: (weeks: number, variables: VariableState): CellState => {
     const cells: CellState = {};
-    const squat1RM = (variables?.SQ_1RM as number) || 315;
+    const squat1RM = (variables.SQ_1RM as number) || 315;
 
-    for (let w = 1; w <= 4; w++) {
+    for (let w = 1; w <= weeks; w++) {
       const intensity = 70 + w * 2.5; // 72.5%, 75%, 77.5%, 80%
       const day = 1;
       const row = 0;
@@ -63,16 +62,16 @@ export const linearProgressionTemplate: TemplateDefinition = {
  */
 export const texasMethodTemplate: TemplateDefinition = {
   name: 'Texas Method',
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  generate: (_weeks: number, _variables: VariableState | null): CellState => {
+  generate: (weeks: number, variables: VariableState): CellState => {
     const cells: CellState = {};
+    const squat1RM = Number(variables.SQ_1RM ?? 0);
     const rows = [
       { day: 1, intensity: 75, sets: 5, reps: 5, rest: 3 }, // Mon: high volume
       { day: 2, intensity: 70, sets: 3, reps: 5, rest: 2 }, // Wed: high intensity
       { day: 3, intensity: 65, sets: 3, reps: 5, rest: 2 }, // Fri: light
     ];
 
-    for (let w = 1; w <= 4; w++) {
+    for (let w = 1; w <= weeks; w++) {
       rows.forEach((row) => {
         const cellKey = `W${w}_D${row.day}_R0`;
         cells[`${cellKey}_intensity`] = {
@@ -90,6 +89,14 @@ export const texasMethodTemplate: TemplateDefinition = {
           resolved: String(row.reps),
           error: null,
         };
+        if (squat1RM) {
+          const load = Math.round((squat1RM * (row.intensity + (w - 1) * 2.5)) / 100 / 2.5) * 2.5;
+          cells[`${cellKey}_load`] = {
+            raw: String(load),
+            resolved: String(load),
+            error: null,
+          };
+        }
         cells[`${cellKey}_rest`] = {
           raw: String(row.rest),
           resolved: String(row.rest),
@@ -108,10 +115,10 @@ export const texasMethodTemplate: TemplateDefinition = {
  */
 export const fiveThreeOneTemplate: TemplateDefinition = {
   name: '5/3/1 Block',
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  generate: (_weeks: number, _variables: VariableState | null): CellState => {
+  generate: (weeks: number, variables: VariableState): CellState => {
     const cells: CellState = {};
     const baseIntensity = 65;
+    const bench1RM = Number(variables.BP_1RM ?? 0);
     const blocks = [
       { week: 1, reps: 5, intensity: 5 },
       { week: 2, reps: 5, intensity: 7 },
@@ -119,7 +126,7 @@ export const fiveThreeOneTemplate: TemplateDefinition = {
       { week: 4, reps: 5, intensity: 3 }, // deload
     ];
 
-    blocks.forEach(({ week, reps, intensity }) => {
+    blocks.slice(0, weeks).forEach(({ week, reps, intensity }) => {
       const cellKey = `W${week}_D1_R0`;
       cells[`${cellKey}_intensity`] = {
         raw: String(baseIntensity + intensity),
@@ -136,6 +143,14 @@ export const fiveThreeOneTemplate: TemplateDefinition = {
         resolved: String(reps),
         error: null,
       };
+      if (bench1RM) {
+        const load = Math.round((bench1RM * (baseIntensity + intensity)) / 100 / 2.5) * 2.5;
+        cells[`${cellKey}_load`] = {
+          raw: String(load),
+          resolved: String(load),
+          error: null,
+        };
+      }
     });
 
     return cells;
@@ -148,8 +163,7 @@ export const fiveThreeOneTemplate: TemplateDefinition = {
  */
 export const dailyUndulatingTemplate: TemplateDefinition = {
   name: 'Daily Undulating',
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  generate: (_weeks: number, _variables: VariableState | null): CellState => {
+  generate: (weeks: number, variables: VariableState): CellState => {
     const cells: CellState = {};
     const sessions = [
       { day: 1, rep_range: 'low', intensity: 80, reps: 3, sets: 5 },
@@ -157,7 +171,9 @@ export const dailyUndulatingTemplate: TemplateDefinition = {
       { day: 3, rep_range: 'high', intensity: 70, reps: 8, sets: 3 },
     ];
 
-    for (let w = 1; w <= 4; w++) {
+    const bodyweight = Number(variables.MASS_KG ?? 0);
+
+    for (let w = 1; w <= weeks; w++) {
       sessions.forEach(({ day, intensity, reps, sets }) => {
         const cellKey = `W${w}_D${day}_R0`;
         cells[`${cellKey}_intensity`] = {
@@ -175,6 +191,13 @@ export const dailyUndulatingTemplate: TemplateDefinition = {
           resolved: String(reps),
           error: null,
         };
+        if (bodyweight) {
+          cells[`${cellKey}_load`] = {
+            raw: String(Math.round(bodyweight * (intensity / 100))),
+            resolved: String(Math.round(bodyweight * (intensity / 100))),
+            error: null,
+          };
+        }
       });
     }
 

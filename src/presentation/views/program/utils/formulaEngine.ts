@@ -64,7 +64,6 @@ export function parseFormula(
     expr = expr.replace(/(\d+(?:\.\d+)?)\s*%/g, '($1 / 100)');
 
     // 6. Safely evaluate
-    // eslint-disable-next-line no-new-func
     const result = new Function(`"use strict"; return (${expr})`)();
     return {
       resolved: String(result),

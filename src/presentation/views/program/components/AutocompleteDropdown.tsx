@@ -23,13 +23,8 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
   y = 0,
 }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Reset selected index when options change
-    // This is safe here as we're syncing with external state
-  }, [options]);
+  const itemsRef = useRef<Array<HTMLDivElement | null>>([]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

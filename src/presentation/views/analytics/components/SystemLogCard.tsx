@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Terminal, CheckCircle2, AlertTriangle, XCircle, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 

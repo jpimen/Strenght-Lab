@@ -50,6 +50,8 @@ export default function ProgramView() {
       {/* Program Builder Component */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <ProgramBuilder
+          programName={data.name}
+          athleteName={data.athleteName}
           initialWeeks={data.durationWeeks}
         />
       </div>

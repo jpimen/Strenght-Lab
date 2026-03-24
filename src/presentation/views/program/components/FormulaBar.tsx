@@ -4,7 +4,7 @@
  * Mimics Excel's formula bar exactly
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, X as CloseIcon } from 'lucide-react';
 import type { VariableState } from '../types/spreadsheet';
 
@@ -87,7 +87,7 @@ export const FormulaBar: React.FC<FormulaBarProps> = ({
   return (
     <div className="flex items-center gap-3 px-4 py-2 border-b border-gray-200 bg-white">
       {/* Name Box */}
-      <div className="relative" ref={dropdownRef}>
+      <div ref={dropdownRef} className="relative">
         <div className="flex items-center gap-1 w-[120px]">
           <input
             type="text"

@@ -49,45 +49,17 @@ export const SheetCell: React.FC<SheetCellProps> = ({
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
-      // Only select all if the edit value matches the raw value (i.e. double clicked or enter)
-      // If we typed a key to start editing, we want the cursor at the end.
-      if (editValue === cellData?.raw) {
-        inputRef.current.select();
-      }
+      inputRef.current.select();
     }
-  }, [isEditing, editValue, cellData]);
-
-  // Handle global keyboard events to start editing when active
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Ignore if not active, or if we are already editing, or if readonly
-      if (!isActive || isEditing || isReadonly) return;
-      // Ignore if user is focused on an input somewhere else (like formula bar)
-      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
-
-      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        setIsEditing(true);
-        setEditValue(e.key);
-        setLivePreview(e.key);
-        e.preventDefault();
-      } else if (e.key === 'Backspace' || e.key === 'Delete') {
-        onValueChange(cellKey, '');
-        e.preventDefault();
-      } else if (e.key === 'Enter') {
-        setIsEditing(true);
-        setEditValue(cellData?.raw || '');
-        e.preventDefault();
-      }
-    };
-
-    document.addEventListener('keydown', handleGlobalKeyDown);
-    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [isActive, isEditing, isReadonly, cellKey, onValueChange, cellData]);
+  }, [isEditing]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onCellClick(cellKey);
-    // Don't turn off isEditing if we are clicking on our own cell while editing
+    if (!isReadonly) {
+      setIsEditing(true);
+      setEditValue(cellData?.raw || '');
+    }
   };
 
   const handleDoubleClick = (e: React.MouseEvent) => {

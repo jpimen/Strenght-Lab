@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   PieChart,
   Pie,
@@ -37,7 +36,7 @@ export default function DistributionChart() {
               animationBegin={200}
               animationDuration={1500}
             >
-              {data.map((entry, index) => (
+              {data.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>

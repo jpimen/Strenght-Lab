@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useAthleteViewModel } from '../../viewmodels/useAthleteViewModel';
 import { CloudDownload, Plus, Filter } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import clsx from 'clsx';
+import ChatTab from './components/ChatTab';
 
 // Mock chart data matching the trajectory shown in Image 2
 const chartData = [
@@ -18,6 +20,7 @@ const chartData = [
 
 export default function AthleteView() {
   const { data, isLoading } = useAthleteViewModel();
+  const [activeTab, setActiveTab] = useState('PROGRESS');
 
   if (isLoading || !data) return <div className="p-8 text-iron-red animate-pulse">LOADING_ATHLETE_DATA...</div>;
 
@@ -73,11 +76,15 @@ export default function AthleteView() {
           </div>
           
           <div className="flex gap-6 mt-6 border-t border-gray-100 pt-6">
-             {['OVERVIEW', 'PROGRAMS', 'PROGRESS', 'NOTES'].map(tab => (
-               <button key={tab} className={clsx(
-                 "text-[10px] font-mono tracking-widest uppercase font-bold pb-2 border-b-2 transition-colors",
-                 tab === 'PROGRESS' ? 'border-iron-red text-iron-900' : 'border-transparent text-gray-400 hover:text-iron-900'
-               )}>
+             {['OVERVIEW', 'PROGRAMS', 'PROGRESS', 'CHAT', 'NOTES'].map(tab => (
+               <button 
+                 key={tab} 
+                 onClick={() => setActiveTab(tab)}
+                 className={clsx(
+                   "text-[10px] font-mono tracking-widest uppercase font-bold pb-2 border-b-2 transition-colors",
+                   tab === activeTab ? 'border-iron-red text-iron-900' : 'border-transparent text-gray-400 hover:text-iron-900'
+                 )}
+               >
                  {tab}
                </button>
              ))}
@@ -85,6 +92,10 @@ export default function AthleteView() {
         </div>
       </div>
 
+      {activeTab === 'CHAT' ? (
+        <ChatTab />
+      ) : (
+        <>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left main column */}
         <div className="lg:col-span-3 flex flex-col gap-6">
@@ -277,6 +288,8 @@ export default function AthleteView() {
           </table>
         </div>
       </div>
+        </>
+      )}
 
     </div>
   );

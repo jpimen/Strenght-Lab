@@ -1,9 +1,11 @@
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useRosterViewModel } from '../../viewmodels/useRosterViewModel';
 import AthleteCard from './components/AthleteCard';
 
 export default function RosterSelectorView() {
   const { athletes, isLoading, searchQuery, setSearchQuery } = useRosterViewModel();
+  const navigate = useNavigate();
 
   return (
     <div className="animate-in fade-in duration-500 h-full flex flex-col bg-[#f2f2f2]">
@@ -44,6 +46,12 @@ export default function RosterSelectorView() {
             </div>
             <ChevronDown className="w-4 h-4 text-gray-400" />
           </div>
+          <button
+            onClick={() => navigate('/program-builder/editor/new')}
+            className="min-w-[180px] flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white text-[11px] font-mono font-bold tracking-widest uppercase px-4"
+          >
+            <Plus className="w-4 h-4" /> Create New Program
+          </button>
         </div>
       </div>
 

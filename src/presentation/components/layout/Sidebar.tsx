@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, CalendarDays, Users, BarChart3, SlidersHorizontal, UserSquare2 } from 'lucide-react';
 import clsx from 'clsx';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../auth/useAuth';
 
 const navItems = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'DASHBOARD' },
@@ -11,6 +13,9 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+  const { user, logOut } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 z-10 shadow-sm relative">
       <div className="p-6 border-b border-gray-200">
@@ -60,15 +65,26 @@ export default function Sidebar() {
           <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-400 border border-gray-200 overflow-hidden">
             <UserSquare2 className="w-6 h-6" />
           </div>
-          <div>
-            <div className="text-[10px] font-bold text-iron-900 uppercase tracking-wider">
-              CHIEF ARCHITECT
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold text-iron-900 uppercase tracking-wider truncate">
+              {user?.fullName ?? 'ACTIVE SESSION'}
             </div>
-            <div className="text-[10px] text-gray-500 font-mono tracking-widest">
-              S. VANCE
+            <div className="text-[10px] text-gray-500 font-mono tracking-widest truncate uppercase">
+              {user?.email ?? 'UNIDENTIFIED'}
             </div>
           </div>
         </div>
+
+        <button
+          onClick={async () => {
+            await logOut();
+            navigate('/login', { replace: true });
+          }}
+          className="mt-4 text-[10px] font-mono font-bold tracking-widest uppercase text-gray-400 hover:text-iron-red transition-colors"
+          type="button"
+        >
+          LOG_OUT
+        </button>
       </div>
     </div>
   );

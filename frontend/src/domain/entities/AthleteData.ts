@@ -42,6 +42,9 @@ export interface AthleteData {
   recentEntries: RecentEntry[];
   calibration: CalibrationIndex;
   rawLogs: RawLog[];
+  canDeleteProgram?: boolean;
+  programSelectionId?: string;
+  programSourceScope?: string;
 }
 
 export interface IAthleteRepository {

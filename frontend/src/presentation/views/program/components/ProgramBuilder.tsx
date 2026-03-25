@@ -4,7 +4,7 @@
  * Integrates all sub-components into a cohesive program building experience
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   RotateCcw,
   RotateCw,
@@ -33,6 +33,7 @@ import {
 import { getAutocompleteSuggestions } from '../utils/autocomplete';
 import type { AutocompleteOption } from '../utils/autocomplete';
 import { templates } from '../utils/templates';
+import type { ProgramBuilderSnapshot } from '../utils/programDraftCache';
 
 const buildInitialCells = (weeks: number): CellState => {
   const newCells: CellState = {};
@@ -53,11 +54,15 @@ const buildInitialCells = (weeks: number): CellState => {
 
 interface ProgramBuilderProps {
   initialWeeks?: number;
+  initialState?: ProgramBuilderSnapshot | null;
+  onStateChange?: (state: ProgramBuilderSnapshot) => void;
   onSave?: (state: SheetState) => void;
 }
 
 export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
   initialWeeks = 4,
+  initialState = null,
+  onStateChange,
 }) => {
   const defaultColumns: SheetGridColumn[] = [
     { key: 'week_day', label: 'WEEK/DAY', width: '100px' },
@@ -71,18 +76,22 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
     { key: 'notes', label: 'NOTES', width: '200px' },
   ];
 
-  // Core sheet state
-  const [cells, setCells] = useState<CellState>(() => buildInitialCells(initialWeeks));
-  const [columns, setColumns] = useState<SheetGridColumn[]>(defaultColumns);
-  const [rowLabels, setRowLabels] = useState<Record<string, string>>({});
-  const [variables, setVariables] = useState<VariableState>({
+  const defaultVariables: VariableState = {
     SQ_1RM: 315,
     BP_1RM: 225,
     DL_1RM: 405,
     MASS_KG: 105,
     BASE_VOL: 4,
     WEEK: 1,
-  });
+  };
+
+  // Core sheet state
+  const [cells, setCells] = useState<CellState>(() => initialState?.cells ?? buildInitialCells(initialWeeks));
+  const [columns, setColumns] = useState<SheetGridColumn[]>(
+    () => (initialState?.columns && initialState.columns.length > 0 ? initialState.columns : defaultColumns)
+  );
+  const [rowLabels, setRowLabels] = useState<Record<string, string>>(() => initialState?.rowLabels ?? {});
+  const [variables, setVariables] = useState<VariableState>(() => initialState?.variables ?? defaultVariables);
 
   // UI state
   const [activeCell, setActiveCell] = useState<string | null>(null);
@@ -110,6 +119,16 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
   const [showErrorPanel, setShowErrorPanel] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!onStateChange) return;
+    onStateChange({
+      cells,
+      columns,
+      rowLabels,
+      variables,
+    });
+  }, [cells, columns, rowLabels, variables, onStateChange]);
 
   // Sync grid selection with formula bar
   const handleSelectCell = useCallback(

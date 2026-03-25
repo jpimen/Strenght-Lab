@@ -4,7 +4,7 @@ import { useRosterViewModel } from '../../viewmodels/useRosterViewModel';
 import AthleteCard from './components/AthleteCard';
 
 export default function RosterSelectorView() {
-  const { athletes, isLoading, searchQuery, setSearchQuery } = useRosterViewModel();
+  const { athletes, isLoading, searchQuery, setSearchQuery, deleteProgram } = useRosterViewModel();
   const navigate = useNavigate();
 
   return (
@@ -64,7 +64,7 @@ export default function RosterSelectorView() {
         ) : (
           <>
             {athletes.map(athlete => (
-              <AthleteCard key={athlete.id} athlete={athlete} />
+              <AthleteCard key={athlete.id} athlete={athlete} onDeleteProgram={deleteProgram} />
             ))}
             
             {athletes.length === 0 && (

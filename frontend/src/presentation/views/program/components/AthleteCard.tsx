@@ -4,11 +4,13 @@ import { clsx } from 'clsx';
 
 interface AthleteCardProps {
   athlete: AthleteData;
+  onDeleteProgram?: (athlete: AthleteData) => void;
 }
 
-export default function AthleteCard({ athlete }: AthleteCardProps) {
+export default function AthleteCard({ athlete, onDeleteProgram }: AthleteCardProps) {
   const navigate = useNavigate();
   const hasProgram = athlete.currentProtocol !== 'NONE_ASSIGNED';
+  const editorScope = athlete.programSourceScope ?? athlete.id;
 
   return (
     <div className="bg-white border border-gray-200 shadow-sm flex items-stretch h-36 group hover:border-iron-red transition-colors duration-300">
@@ -62,17 +64,25 @@ export default function AthleteCard({ athlete }: AthleteCardProps) {
             {hasProgram ? (
               <>
                 <button 
-                  onClick={() => navigate(`/program-builder/editor/${athlete.id}`)}
+                  onClick={() => navigate(`/program-builder/editor/${editorScope}`)}
                   className="px-6 py-2 border border-gray-950 text-[10px] font-mono font-bold text-iron-900 tracking-widest uppercase hover:bg-iron-900 hover:text-white transition-colors"
                 >
                   EDIT_PROG
                 </button>
                 <button 
-                   onClick={() => navigate(`/program-builder/editor/${athlete.id}`)}
+                   onClick={() => navigate(`/program-builder/editor/${editorScope}`)}
                    className="px-6 py-2 bg-gray-50 border border-gray-200 text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase hover:text-iron-900 transition-colors"
                 >
                   NEW_PROG
                 </button>
+                {athlete.canDeleteProgram && (
+                  <button
+                    onClick={() => onDeleteProgram?.(athlete)}
+                    className="px-4 py-2 bg-white border border-red-300 text-[10px] font-mono font-bold text-red-600 tracking-widest uppercase hover:bg-red-50 transition-colors"
+                  >
+                    DELETE
+                  </button>
+                )}
               </>
             ) : (
               <button 

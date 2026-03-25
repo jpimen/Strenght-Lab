@@ -26,8 +26,14 @@ export function toAuthErrorMessage(err: unknown) {
       return 'RESET CODE EXPIRED. REQUEST A NEW ONE.';
     case 'AUTH_RESET_CODE_INVALID':
       return 'INVALID RESET CODE.';
+    case 'AUTH_NETWORK_ERROR':
+      return 'NETWORK ERROR. CHECK BACKEND CONNECTION.';
+    case 'AUTH_SERVER_ERROR':
+      return 'SERVER ERROR. TRY AGAIN.';
+    case 'AUTH_UNAUTHORIZED':
+    case 'AUTH_INVALID_SESSION':
+      return 'SESSION EXPIRED. LOG IN AGAIN.';
     default:
       return 'SYSTEM ERROR. TRY AGAIN.';
   }
 }
-

@@ -7,7 +7,7 @@ const mockAthlete: AthleteData = {
   status: 'ACTIVE',
   massClass: 105,
   specObjective: 800.0,
-  currentProtocol: 'IRON_ARCH_PHASE_3',
+  currentProtocol: 'NONE_ASSIGNED',
   imagePlaceholderUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop',
   maxStats: {
     squat: { weight: 285, statusText: '+5KG PROGRESSION', statusColor: 'red' },
@@ -58,7 +58,7 @@ const mockAthletes: AthleteData[] = [
     idEntry: 'ATH-9841-C',
     status: 'ACTIVE',
     massClass: 93.4,
-    currentProtocol: 'JUGGERNAUT_V3',
+    currentProtocol: 'NONE_ASSIGNED',
     maxStats: {
       squat: { weight: 245.0, statusText: 'STABLE', statusColor: 'gray' },
       bench: { weight: 167.5, statusText: 'STABLE', statusColor: 'gray' },
@@ -86,7 +86,7 @@ const mockAthletes: AthleteData[] = [
     idEntry: 'ATH-1155-X',
     status: 'ACTIVE',
     massClass: 105.8,
-    currentProtocol: 'PEAK_FORCE_4',
+    currentProtocol: 'NONE_ASSIGNED',
     maxStats: {
       squat: { weight: 280.0, statusText: 'STABLE', statusColor: 'gray' },
       bench: { weight: 192.5, statusText: 'STABLE', statusColor: 'gray' },

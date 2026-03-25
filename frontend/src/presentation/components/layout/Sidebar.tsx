@@ -1,5 +1,13 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, Users, BarChart3, SlidersHorizontal, UserSquare2 } from 'lucide-react';
+import {
+  LayoutDashboard,
+  CalendarDays,
+  Users,
+  BarChart3,
+  SlidersHorizontal,
+  UserSquare2,
+  LogOut,
+} from 'lucide-react';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
@@ -60,7 +68,7 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      <div className="p-6 border-t border-gray-200">
+      <div className="mt-auto p-6 border-t border-gray-200">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-400 border border-gray-200 overflow-hidden">
             <UserSquare2 className="w-6 h-6" />
@@ -80,9 +88,10 @@ export default function Sidebar() {
             await logOut();
             navigate('/login', { replace: true });
           }}
-          className="mt-4 text-[10px] font-mono font-bold tracking-widest uppercase text-gray-400 hover:text-iron-red transition-colors"
+          className="mt-4 w-full inline-flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 bg-white text-[10px] font-mono font-bold tracking-widest uppercase text-gray-500 hover:text-iron-red hover:border-iron-red transition-colors"
           type="button"
         >
+          <LogOut className="w-4 h-4" />
           LOG_OUT
         </button>
       </div>

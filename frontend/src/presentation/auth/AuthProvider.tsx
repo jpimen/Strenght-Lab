@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AuthUser } from '../../domain/entities/AuthData';
-import { authRepository } from '../../data/repositories/MockAuthRepository';
+import { authRepository } from '../../data/repositories/ApiAuthRepository';
 import { AuthContext } from './AuthContext';
 import type { AuthContextValue } from './AuthContext';
 

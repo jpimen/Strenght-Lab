@@ -1,23 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { ProgramData } from '../../domain/entities/ProgramData';
-import { programRepository } from '../../data/repositories/MockProgramRepository';
+import { programRepository } from '../../data/repositories/ApiProgramRepository';
 
 export function useProgramViewModel(athleteId?: string) {
-  const [data, setData] = useState<ProgramData | null>(null);
-  const [isLoading, setIsLoading] = useState(athleteId !== 'new');
+  const [data] = useState<ProgramData | null>(null);
+  const [isLoading] = useState(athleteId !== 'new');
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    if (athleteId === 'new') return () => { active = false; };
-    // In a real app we'd fetch by ID, here we just mock it
-    programRepository.getProgramData().then(result => {
-      if (active) {
-        setData(result);
-        setIsLoading(false);
-      }
-    });
-    return () => { active = false; };
-  }, [athleteId]);
+  const publish = async (input: ProgramData, builderData: any) => {
+    setIsPublishing(true);
+    try {
+      const result = await programRepository.publishProgram(input, builderData);
+      return result;
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
-  return { data, isLoading };
+  return { data, isLoading, isPublishing, publish };
 }

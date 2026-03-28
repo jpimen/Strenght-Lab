@@ -52,19 +52,8 @@ const buildInitialCells = (weeks: number): CellState => {
   return newCells;
 };
 
-interface ProgramBuilderProps {
-  initialWeeks?: number;
-  initialState?: ProgramBuilderSnapshot | null;
-  onStateChange?: (state: ProgramBuilderSnapshot) => void;
-  onSave?: (state: SheetState) => void;
-}
-
-export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
-  initialWeeks = 4,
-  initialState = null,
-  onStateChange,
-}) => {
-  const defaultColumns: SheetGridColumn[] = [
+function getDefaultColumns(): SheetGridColumn[] {
+  return [
     { key: 'week_day', label: 'WEEK/DAY', width: '100px' },
     { key: 'exercise', label: 'EXERCISE', width: '180px' },
     { key: 'sets', label: 'SETS', width: '70px' },
@@ -75,15 +64,34 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
     { key: 'tonnage', label: 'TONNAGE', width: '100px' },
     { key: 'notes', label: 'NOTES', width: '200px' },
   ];
+}
 
-  const defaultVariables: VariableState = {
-    SQ_1RM: 315,
-    BP_1RM: 225,
-    DL_1RM: 405,
-    MASS_KG: 105,
-    BASE_VOL: 4,
-    WEEK: 1,
-  };
+interface ProgramBuilderProps {
+  initialWeeks?: number;
+  initialState?: ProgramBuilderSnapshot | null;
+  startEmpty?: boolean;
+  onStateChange?: (state: ProgramBuilderSnapshot) => void;
+  onSave?: (state: SheetState) => void;
+}
+
+export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
+  initialWeeks = 4,
+  initialState = null,
+  startEmpty = false,
+  onStateChange,
+}) => {
+  const defaultColumns = getDefaultColumns();
+
+  const defaultVariables: VariableState = startEmpty
+    ? {}
+    : {
+        SQ_1RM: 315,
+        BP_1RM: 225,
+        DL_1RM: 405,
+        MASS_KG: 105,
+        BASE_VOL: 4,
+        WEEK: 1,
+      };
 
   // Core sheet state
   const [cells, setCells] = useState<CellState>(() => initialState?.cells ?? buildInitialCells(initialWeeks));
@@ -412,6 +420,7 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
             onRowLabelChange={(key, label) => {
               setRowLabels((prev) => ({ ...prev, [key]: label }));
             }}
+            showDefaultRowLabels
             weekCount={initialWeeks}
             dayCount={3}
             exerciseCount={5}

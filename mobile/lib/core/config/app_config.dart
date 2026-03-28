@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 
 class AppConfig {
   static const String _baseUrlFromDefine =
@@ -11,9 +11,9 @@ class AppConfig {
 
     // Android emulator cannot resolve localhost to host machine.
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:3000';
+      return 'http://10.0.2.2:4000';
     }
 
-    return 'http://localhost:3000';
+    return 'http://localhost:4000';
   }
 }

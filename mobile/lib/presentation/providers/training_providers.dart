@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
 import '../../data/models/cycle.dart';
@@ -275,6 +275,51 @@ class TrainingLogController extends StateNotifier<TrainingLogState> {
       await _repository.deleteLog(id);
     } catch (_) {
       state = state.copyWith(rows: original, error: 'FAILED TO DELETE ROW');
+    }
+  }
+
+  Future<void> syncProgram(String code) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    
+    try {
+      final programData = await _repository.importProgram(code);
+      final exercises = programData['exercises'] as List<dynamic>? ?? [];
+      final programName = programData['name'] as String? ?? 'IMPORTED_PROGRAM';
+      
+      // Optionally create a cycle here if needed, but for now we'll just add the logs
+      // to the current view or with a standard label.
+      
+      final List<TrainingLog> importedLogs = [];
+      for (final ex in exercises) {
+        if (ex is Map<String, dynamic>) {
+          final log = TrainingLog(
+            id: '',
+            day: ex['day']?.toString() ?? 'D1',
+            exerciseName: ex['exerciseName']?.toString() ?? 'UNKNOWN',
+            sets: (ex['sets'] as num?)?.toInt() ?? 0,
+            reps: ex['reps']?.toString() ?? '0',
+            intensityRpe: double.tryParse(ex['intensityRpe']?.toString() ?? '0') ?? 0,
+            // You can add more mapping here for 'rest', 'notes' etc if TrainingLog supports it
+          );
+          importedLogs.add(log);
+        }
+      }
+
+      // Save all imported logs
+      for (final log in importedLogs) {
+        await saveRow(log);
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        clearError: true,
+        error: 'SUCCESSFULLY IMPORTED ${importedLogs.length} EXERCISES FROM $programName',
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'FAILED TO SYNC PROGRAM: ${e.toString()}',
+      );
     }
   }
 

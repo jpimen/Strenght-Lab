@@ -36,6 +36,11 @@ export class MockProgramRepository implements IProgramRepository {
   async getProgramData(): Promise<ProgramData> {
     return new Promise(resolve => setTimeout(() => resolve(mockProgram), 300));
   }
+
+  async publishProgram(input: ProgramData, builderData: any): Promise<{ shareCode: string }> {
+    console.log('Mock publishProgram', input, builderData);
+    return { shareCode: 'ABCD12' };
+  }
 }
 
 export const programRepository = new MockProgramRepository();

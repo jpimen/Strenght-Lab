@@ -1,4 +1,4 @@
-﻿import '../models/cycle.dart';
+import '../models/cycle.dart';
 import '../models/training_log.dart';
 import '../services/training_api_service.dart';
 import 'training_repository.dart';
@@ -36,4 +36,7 @@ class TrainingRepositoryImpl implements TrainingRepository {
 
   @override
   Future<TrainingLog> updateLog(TrainingLog log) => _api.updateLog(log);
+
+  @override
+  Future<Map<String, dynamic>> importProgram(String code) => _api.fetchByShareCode(code);
 }

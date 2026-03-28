@@ -1,4 +1,4 @@
-﻿import '../models/cycle.dart';
+import '../models/cycle.dart';
 import '../models/training_log.dart';
 
 abstract class TrainingRepository {
@@ -17,4 +17,6 @@ abstract class TrainingRepository {
   Future<TrainingLog> updateLog(TrainingLog log);
 
   Future<void> deleteLog(String id);
+
+  Future<Map<String, dynamic>> importProgram(String code);
 }

@@ -29,7 +29,7 @@ export interface ProgramData {
   athleteName: string;
   durationWeeks: number;
   goal: string;
-  status: 'AUTO-SYNCED' | 'DRAFT';
+  status: 'AUTO-SYNCED' | 'DRAFT' | 'PUBLISHED';
   exercises: ExerciseRow[];
   weeks: string[]; // e.g. ["WEEK 1", "WEEK 2", "WEEK 3"]
   activeWeek: string;
@@ -38,4 +38,5 @@ export interface ProgramData {
 
 export interface IProgramRepository {
   getProgramData(): Promise<ProgramData>;
+  publishProgram(input: ProgramData, builderData: any): Promise<{ shareCode: string }>;
 }

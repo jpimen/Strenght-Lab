@@ -26,6 +26,7 @@ interface SheetGridProps {
   onColumnChange?: (key: string, next: Partial<SheetGridColumn>) => void;
   rowLabels?: Record<string, string>;
   onRowLabelChange?: (key: string, nextLabel: string) => void;
+  showDefaultRowLabels?: boolean;
   weekCount?: number;
   dayCount?: number;
   exerciseCount?: number;
@@ -43,6 +44,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   onColumnChange,
   rowLabels = {},
   onRowLabelChange,
+  showDefaultRowLabels = true,
   weekCount = 4,
   dayCount = 3,
   exerciseCount = 5,
@@ -124,7 +126,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
       for (let d = 1; d <= dayCount; d++) {
         for (let r = 0; r < exerciseCount; r++) {
           const baseKey = `W${w}_D${d}_R${r}`;
-          const rowLabel = rowLabels[baseKey] ?? (r === 0 ? `W${w} D${d}` : '');
+          const rowLabel = rowLabels[baseKey] ?? (showDefaultRowLabels && r === 0 ? `W${w} D${d}` : '');
 
           data.push({
             rowLabel,
@@ -139,7 +141,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
     }
 
     return data;
-  }, [weekCount, dayCount, exerciseCount, displayColumns, rowLabels]);
+  }, [weekCount, dayCount, exerciseCount, displayColumns, rowLabels, showDefaultRowLabels]);
 
   const gridData = useMemo(() => generateGridData(), [generateGridData]);
 

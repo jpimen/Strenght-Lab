@@ -1,4 +1,4 @@
-﻿import '../models/cycle.dart';
+import '../models/cycle.dart';
 import '../models/training_log.dart';
 import 'api_client.dart';
 
@@ -56,6 +56,11 @@ class TrainingApiService {
 
   Future<void> deleteLog(String id) async {
     await _client.delete('/api/training-logs/$id');
+  }
+
+  Future<Map<String, dynamic>> fetchByShareCode(String code) async {
+    final payload = await _client.get('/api/programs/fetch/$code');
+    return _extractMap(payload);
   }
 
   List<dynamic> _extractList(dynamic payload) {

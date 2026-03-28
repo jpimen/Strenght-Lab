@@ -278,9 +278,20 @@ class TrainingLogController extends StateNotifier<TrainingLogState> {
     }
   }
 
-  Future<void> syncProgram(String code) async {
+  Future<void> syncProgram(String input) async {
     state = state.copyWith(isLoading: true, clearError: true);
     
+    // Support full URLs (e.g., http://localhost:5173/share/ABC123) or just the 6-digit code
+    String code = input.trim().toUpperCase();
+    if (code.contains('/')) {
+      final parts = code.split('/');
+      // Get the last non-empty segment
+      final segment = parts.lastWhere((s) => s.isNotEmpty, orElse: () => '');
+      if (segment.length >= 6) {
+        code = segment.substring(segment.length - 6);
+      }
+    }
+
     try {
       final programData = await _repository.importProgram(code);
       final exercises = programData['exercises'] as List<dynamic>? ?? [];

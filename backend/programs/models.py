@@ -24,6 +24,26 @@ def _generate_share_code() -> str:
     return "".join(random.choices(chars, k=6))
 
 
+class Cycle(models.Model):
+    """A training block (e.g., Week 1, Mesocycle A)."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default="")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="cycles")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "programs_cycle"
+        ordering = ["-created_at"]
+
+    def to_dict(self):
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "description": self.description,
+            "createdAt": self.created_at.isoformat().replace("+00:00", "Z"),
+        }
+
 class Program(models.Model):
     """A published training program with a shareable code."""
 

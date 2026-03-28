@@ -55,14 +55,14 @@ class ProfileScreen extends ConsumerWidget {
                       autocorrect: false,
                       style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold, letterSpacing: 1.5, fontSize: 18),
                       decoration: const InputDecoration(
-                        hintText: 'ENTER 6-DIGIT CODE',
-                        hintStyle: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                        hintText: 'PASTE LINK OR ENTER 6-DIGIT CODE',
+                        hintStyle: TextStyle(color: AppTheme.textMuted, fontSize: 11),
                         border: InputBorder.none,
                       ),
                       textCapitalization: TextCapitalization.characters,
-                      onSubmitted: (code) async {
-                        if (code.trim().length == 6) {
-                          await notifier.syncProgram(code.trim().toUpperCase());
+                      onSubmitted: (input) async {
+                        if (input.trim().isNotEmpty) {
+                          await notifier.syncProgram(input.trim());
                         }
                       },
                     ),
@@ -80,7 +80,7 @@ class ProfileScreen extends ConsumerWidget {
                           alignment: Orientation.portrait == MediaQuery.of(context).orientation ? Alignment.center : Alignment.center,
                           child: Text(
                             state.isLoading ? 'SYNCING...' : 'SYNC PROGRAM DATA',
-                            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.black, fontSize: 13, letterSpacing: 1),
+                            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1),
                           ),
                         ),
                       ),

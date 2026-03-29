@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev:frontend": "npm --prefix frontend run dev",
-    "dev:backend": "npm --prefix backend run dev",
+    "dev:backend": "powershell -Command \"cd backend; python manage.py runserver\"",
     "lint:frontend": "npm --prefix frontend run lint",
     "build:frontend": "npm --prefix frontend run build",
     "preview:frontend": "npm --prefix frontend run preview"

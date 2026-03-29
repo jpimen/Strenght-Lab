@@ -17,6 +17,7 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("true", "1", "yes")
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
+    "django.contrib.contenttypes",
     "corsheaders",
     "authentication",
     "programs",
@@ -43,8 +44,9 @@ DATABASES = {
 
 # ---------- CORS ----------
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS"]
+CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
 CORS_ALLOW_HEADERS = ["content-type", "authorization"]
+CORS_ALLOW_CREDENTIALS = True
 
 # ---------- Internals ----------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

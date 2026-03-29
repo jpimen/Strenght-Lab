@@ -3,7 +3,7 @@
  * Main spreadsheet grid with cells, headers, and interactions
  */
 
-import { useRef, useCallback, useMemo, useState } from 'react';
+import { useRef, useCallback, useMemo, useState, useEffect } from 'react';
 import { SheetCell } from './SheetCell';
 import type { CellState, SelectionRange } from '../types/spreadsheet';
 import { buildDependencyGraph, getDependencies, getDependents } from '../utils/formulaEngine';
@@ -39,7 +39,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   onCellClick,
   onCellDoubleClick,
   onValueChange,
-  readonlyColumns = ['load', 'tonnage'],
+  readonlyColumns = ['load'],
   columns = [],
   onColumnChange,
   rowLabels = {},
@@ -55,6 +55,13 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   const [columnWidthValue, setColumnWidthValue] = useState('');
   const [editingRowKey, setEditingRowKey] = useState<string | null>(null);
   const [rowEditValue, setRowEditValue] = useState('');
+  const [dragStartCell, setDragStartCell] = useState<string | null>(null);
+  const [dragEndCell, setDragEndCell] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [columnWidths, setColumnWidths] = useState<Record<string, string>>({});
+  const [rowHeight, setRowHeight] = useState(40);
+  const [resizingColumn, setResizingColumn] = useState<null | { key: string; startX: number; startWidth: number }>(null);
+  const [resizingRow, setResizingRow] = useState<null | { startY: number; startHeight: number }>(null);
   
   const dependencyGraph = buildDependencyGraph(cells);
 
@@ -68,6 +75,14 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
     return getDependents(activeCell, dependencyGraph);
   }, [activeCell, dependencyGraph]);
   const displayColumns = useMemo(() => (columns.length > 0 ? columns : []), [columns]);
+
+  useEffect(() => {
+    const initialWidths: Record<string, string> = {};
+    displayColumns.forEach((col) => {
+      initialWidths[col.key] = columnWidths[col.key] || col.width;
+    });
+    setColumnWidths(initialWidths);
+  }, [displayColumns]);
 
   const startEditColumn = (col: SheetGridColumn) => {
     if (!onColumnChange) return;
@@ -145,15 +160,122 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
 
   const gridData = useMemo(() => generateGridData(), [generateGridData]);
 
-  // Check if cell is in selection
+  // Get flat list of all cell keys in order
+  const allCellKeys = useMemo(() => {
+    return gridData.flatMap((row) => row.cells.map((cell) => cell.key));
+  }, [gridData]);
+
+  // Calculate the range between two cells
+  const getCellRange = useCallback(
+    (start: string, end: string) => {
+      const startIdx = allCellKeys.indexOf(start);
+      const endIdx = allCellKeys.indexOf(end);
+      if (startIdx === -1 || endIdx === -1) return [];
+
+      const [minIdx, maxIdx] = startIdx <= endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
+      return allCellKeys.slice(minIdx, maxIdx + 1);
+    },
+    [allCellKeys]
+  );
+
+  // Check if cell is in selection (either drag selection or formula bar selection)
   const isCellSelected = useCallback(
     (cellKey: string): boolean => {
-      if (!selectionRange) return false;
-      // Simple range check - assumes sequential ordering
-      return cellKey >= selectionRange.start && cellKey <= selectionRange.end;
+      // Check drag selection
+      if (dragStartCell && dragEndCell) {
+        const selectedCells = getCellRange(dragStartCell, dragEndCell);
+        return selectedCells.includes(cellKey);
+      }
+      if (dragStartCell && !dragEndCell) {
+        return dragStartCell === cellKey;
+      }
+      // Check formula bar selection
+      if (selectionRange) {
+        return cellKey >= selectionRange.start && cellKey <= selectionRange.end;
+      }
+      return false;
     },
-    [selectionRange]
+    [selectionRange, dragStartCell, dragEndCell, getCellRange]
   );
+
+  // Handle cell mouse down - start drag selection
+  const handleCellMouseDown = useCallback(
+    (cellKey: string, e: React.MouseEvent) => {
+      if (e.button !== 0 || resizingColumn || resizingRow) return; // Only left mouse button and no resize in progress
+      setIsDragging(true);
+      setDragStartCell(cellKey);
+      setDragEndCell(cellKey);
+      onCellClick(cellKey);
+    },
+    [onCellClick, resizingColumn, resizingRow]
+  );
+
+  const handleColResizeMouseDown = useCallback(
+    (colKey: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const widthValue = columnWidths[colKey] || displayColumns.find((col) => col.key === colKey)?.width || '90px';
+      const initialWidth = Number(widthValue.replace('px', '')) || 90;
+      setIsDragging(false);
+      setResizingColumn({ key: colKey, startX: e.clientX, startWidth: initialWidth });
+    },
+    [columnWidths, displayColumns]
+  );
+
+  const handleRowResizeMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setIsDragging(false);
+      setResizingRow({ startY: e.clientY, startHeight: rowHeight });
+    },
+    [rowHeight]
+  );
+
+  // Handle cell mouse enter - update drag selection
+  const handleCellMouseEnter = useCallback(
+    (cellKey: string) => {
+      if (isDragging && dragStartCell) {
+        setDragEndCell(cellKey);
+      }
+    },
+    [isDragging, dragStartCell]
+  );
+
+  // Handle mouse move during resize
+  const handleMouseMove = useCallback(
+    (event: MouseEvent) => {
+      if (resizingColumn) {
+        const deltaX = event.clientX - resizingColumn.startX;
+        const nextWidth = Math.max(40, resizingColumn.startWidth + deltaX);
+        setColumnWidths((prev) => ({ ...prev, [resizingColumn.key]: `${nextWidth}px` }));
+      }
+
+      if (resizingRow) {
+        const deltaY = event.clientY - resizingRow.startY;
+        const nextHeight = Math.max(24, resizingRow.startHeight + deltaY);
+        setRowHeight(nextHeight);
+      }
+    },
+    [resizingColumn, resizingRow]
+  );
+
+  // Handle mouse up - end drag selection or resize
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setResizingColumn(null);
+    setResizingRow(null);
+  }, []);
+
+  // Add global mouse event listeners
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, cellKey: string) => {
     const cellIndex = gridData.flatMap((r) => r.cells).findIndex((c) => c.key === cellKey);
@@ -220,9 +342,13 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
             {displayColumns.map((col) => (
               <th
                 key={col.key}
-                style={{ width: col.width }}
+                style={{ width: columnWidths[col.key] || col.width, position: 'relative' }}
                 className="px-3 py-2 text-left font-mono text-[9px] font-bold tracking-widest uppercase text-gray-700 bg-gray-50 border-r border-gray-200 last:border-0"
               >
+              <div
+                className="absolute right-0 top-0 h-full w-1 cursor-col-resize"
+                onMouseDown={(e) => handleColResizeMouseDown(col.key, e)}
+              />
                 {editingColumnKey === col.key ? (
                   <div className="flex flex-col gap-1">
                     <input
@@ -264,9 +390,18 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
             <tr
               key={`row-${rowIdx}`}
               className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
+              style={{ minHeight: `${rowHeight}px` }}
             >
               {/* Row label */}
-              <td className="w-20 px-2 py-2 bg-gray-50 border-r border-gray-200 text-left">
+              <td
+                className="w-20 px-2 py-2 bg-gray-50 border-r border-gray-200 text-left relative"
+                style={{ height: `${rowHeight}px` }}
+              >
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize"
+                  onMouseDown={handleRowResizeMouseDown}
+                  title="Drag to resize row height"
+                />
                 {editingRowKey === row.rowKey ? (
                   <input
                     value={rowEditValue}
@@ -320,6 +455,8 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
                     onCellDoubleClick={onCellDoubleClick}
                     onValueChange={onValueChange}
                     onKeyDown={handleKeyDown}
+                    onMouseDown={handleCellMouseDown}
+                    onMouseEnter={handleCellMouseEnter}
                     width={colDef?.width}
                   />
                 );

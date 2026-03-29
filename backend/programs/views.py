@@ -149,13 +149,13 @@ class TrainingLogCompatView(View):
         # Handle creating a log from mobile
         user = _get_user_from_request(request)
         if not user:
-             return _json_error("UNAUTHORIZED", 401)
-             
+            return _json_error("UNAUTHORIZED", 401)
+            
         try:
             body = json.loads(request.body)
-        except:
-             return _json_error("INVALID_JSON", 400)
-             
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return _json_error("INVALID_JSON", 400)
+            
         # Create a dummy session or link to a program
         # For compatibility speed, let's just save the log.
         # In a real app, we'd need to find/create the today session.

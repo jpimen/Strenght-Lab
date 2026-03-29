@@ -8,8 +8,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   RotateCcw,
   RotateCw,
-  Download,
-  Zap,
   AlertCircle,
 } from 'lucide-react';
 import { FormulaBar } from './FormulaBar';
@@ -32,7 +30,6 @@ import {
 } from '../utils/formulaEngine';
 import { getAutocompleteSuggestions } from '../utils/autocomplete';
 import type { AutocompleteOption } from '../utils/autocomplete';
-import { templates } from '../utils/templates';
 import type { ProgramBuilderSnapshot } from '../utils/programDraftCache';
 
 const buildInitialCells = (weeks: number): CellState => {
@@ -61,7 +58,6 @@ function getDefaultColumns(): SheetGridColumn[] {
     { key: 'intensity', label: 'INTENSITY (%)', width: '90px' },
     { key: 'rest', label: 'REST (MIN)', width: '90px' },
     { key: 'load', label: 'LOAD (kg)', width: '90px' },
-    { key: 'tonnage', label: 'TONNAGE', width: '100px' },
     { key: 'notes', label: 'NOTES', width: '200px' },
   ];
 }
@@ -232,23 +228,6 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
     [cells, variables]
   );
 
-  // Handle template application
-  const handleApplyTemplate = useCallback(
-    (templateId: string) => {
-      const template = templates[templateId];
-      if (template) {
-        const templateCells = template.generate(initialWeeks, variables);
-        const newCells = { ...cells, ...templateCells };
-        const resolved = resolveAll(newCells, variables);
-
-        setPast((p) => [...p, cells]);
-        setFuture([]);
-        setCells(resolved);
-      }
-    },
-    [cells, initialWeeks, variables]
-  );
-
   // Undo
   const handleUndo = () => {
     if (past.length > 0) {
@@ -273,30 +252,6 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
   // Get error cells
   const errorCells = getErrorCells(cells);
 
-  // Export as CSV
-  const handleExportCSV = () => {
-    let csv = 'WEEK,DAY,ROW,SETS,REPS,INTENSITY,REST,LOAD,TONNAGE\n';
-    Object.entries(cells).forEach(([key]) => {
-      if (key.endsWith('_sets')) {
-        const baseKey = key.replace('_sets', '');
-        const match = baseKey.match(/W(\d+)_D(\d+)_R(\d+)/);
-        if (match) {
-          const [, week, day, row] = match;
-          const sets = cells[`${baseKey}_sets`]?.resolved || '';
-          const reps = cells[`${baseKey}_reps`]?.resolved || '';
-          const intensity = cells[`${baseKey}_intensity`]?.resolved || '';
-          const rest = cells[`${baseKey}_rest`]?.resolved || '';
-          const load = cells[`${baseKey}_load`]?.resolved || '';
-          csv += `${week},${day},${row},${sets},${reps},${intensity},${rest},${load}\n`;
-        }
-      }
-    });
-
-    // Copy to clipboard
-    navigator.clipboard.writeText(csv).then(() => {
-      alert('CSV copied to clipboard');
-    });
-  };
 
   return (
     <div
@@ -338,31 +293,6 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
               title="Toggle Variables Panel"
             >
               [VAR]
-            </button>
-
-            <div className="relative group">
-              <button className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono font-bold text-gray-700 hover:bg-gray-200 transition-colors">
-                <Zap className="w-3 h-3" /> TEMPLATE
-              </button>
-              <div className="absolute hidden group-hover:block bg-white border border-gray-300 rounded shadow-lg z-40 min-w-[150px]">
-                {Object.entries(templates).map(([id, template]) => (
-                  <button
-                    key={id}
-                    onClick={() => handleApplyTemplate(id)}
-                    className="block w-full text-left px-3 py-2 text-[10px] font-mono hover:bg-orange-50 border-b border-gray-100 last:border-0"
-                  >
-                    {template.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Export */}
-            <button
-              onClick={handleExportCSV}
-              className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono font-bold text-gray-700 hover:bg-gray-200 transition-colors"
-            >
-              <Download className="w-3 h-3" /> EXPORT
             </button>
           </div>
         </div>

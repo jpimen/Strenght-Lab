@@ -21,6 +21,8 @@ interface SheetCellProps {
   onCellDoubleClick: (key: string) => void;
   onValueChange: (key: string, value: string) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>, key: string) => void;
+  onMouseDown?: (key: string, e: React.MouseEvent) => void;
+  onMouseEnter?: (key: string) => void;
   width?: string;
 }
 
@@ -38,6 +40,8 @@ export const SheetCell: React.FC<SheetCellProps> = ({
   onCellDoubleClick,
   onValueChange,
   onKeyDown,
+  onMouseDown,
+  onMouseEnter,
   width = 'auto',
 }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -115,12 +119,22 @@ export const SheetCell: React.FC<SheetCellProps> = ({
       style={{ width }}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
+      onMouseDown={(e) => {
+        if (onMouseDown) {
+          onMouseDown(cellKey, e);
+        }
+      }}
+      onMouseEnter={() => {
+        if (onMouseEnter) {
+          onMouseEnter(cellKey);
+        }
+      }}
       className={clsx(
-        'relative px-3 py-2 text-[11px] font-sans border border-gray-200 transition-colors',
+        'relative px-3 py-2 text-[11px] font-sans border border-gray-200 transition-colors select-none',
         isReadonly && 'bg-gray-50 cursor-default',
         !isReadonly && 'cursor-cell',
         isActive && 'ring-2 ring-orange-500 ring-inset z-10',
-        isSelected && !isActive && 'bg-blue-50',
+        isSelected && !isActive && 'bg-blue-50 ring-1 ring-blue-300',
         hasError && 'bg-amber-50 ring-1 ring-amber-500',
         isFormula && !hasError && 'bg-orange-50/5',
         isDependency && !isActive && 'ring-1 ring-blue-400',

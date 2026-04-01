@@ -24,6 +24,7 @@ interface SheetCellProps {
   onMouseDown?: (key: string, e: React.MouseEvent) => void;
   onMouseEnter?: (key: string) => void;
   width?: string;
+  zoomLevel?: number;
 }
 
 export const SheetCell: React.FC<SheetCellProps> = ({
@@ -43,6 +44,7 @@ export const SheetCell: React.FC<SheetCellProps> = ({
   onMouseDown,
   onMouseEnter,
   width = 'auto',
+  zoomLevel = 100,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(cellData?.raw || '');
@@ -113,6 +115,9 @@ export const SheetCell: React.FC<SheetCellProps> = ({
 
   const displayValue = livePreview || cellData?.resolved || '';
   const isFormulaBased = cellData?.raw.startsWith('=') || false;
+  const zoomScale = zoomLevel / 100;
+  const cellFontSize = Math.max(9, Math.round(11 * zoomScale));
+  const indicatorSize = Math.max(6, Math.round(8 * zoomScale));
 
   return (
     <td
@@ -130,7 +135,7 @@ export const SheetCell: React.FC<SheetCellProps> = ({
         }
       }}
       className={clsx(
-        'relative px-3 py-2 text-[11px] font-sans border border-gray-200 transition-all duration-200 select-none',
+        'relative px-3 py-2 font-sans border border-gray-200 transition-all duration-200 select-none',
         isReadonly && 'bg-gray-50 cursor-default',
         !isReadonly && 'cursor-cell hover:shadow-sm hover:border-gray-300',
         isActive && 'ring-2 ring-orange-500 ring-inset z-10',
@@ -173,13 +178,18 @@ export const SheetCell: React.FC<SheetCellProps> = ({
               hasError && 'text-amber-600',
               !hasError && 'text-gray-900'
             )}
+            style={{ fontSize: `${cellFontSize}px` }}
           >
             {displayValue}
           </span>
 
           {/* Formula indicator (red triangle) */}
           {isFormulaBased && !hasError && (
-            <div className="ml-1 w-2 h-2 bg-orange-600 rounded-tr-sm" title={cellData?.raw} />
+            <div
+              className="ml-1 bg-orange-600 rounded-tr-sm"
+              style={{ width: `${indicatorSize}px`, height: `${indicatorSize}px` }}
+              title={cellData?.raw}
+            />
           )}
         </div>
       )}

@@ -30,6 +30,7 @@ interface SheetGridProps {
   weekCount?: number;
   dayCount?: number;
   exerciseCount?: number;
+  zoomLevel?: number;
 }
 
 export const SheetGrid: React.FC<SheetGridProps> = ({
@@ -48,6 +49,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   weekCount = 4,
   dayCount = 3,
   exerciseCount = 5,
+  zoomLevel = 100,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [editingColumnKey, setEditingColumnKey] = useState<string | null>(null);
@@ -75,6 +77,18 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
     return getDependents(activeCell, dependencyGraph);
   }, [activeCell, dependencyGraph]);
   const displayColumns = useMemo(() => (columns.length > 0 ? columns : []), [columns]);
+  const zoomScale = zoomLevel / 100;
+  const rowLabelWidth = Math.max(60, Math.round(80 * zoomScale));
+  const cellMinHeight = Math.max(28, Math.round(40 * zoomScale));
+  const headerFontSize = Math.max(8, Math.round(9 * zoomScale));
+  const rowLabelFontSize = Math.max(8, Math.round(9 * zoomScale));
+
+  const scaleSize = useCallback((value: string | undefined, fallback: number) => {
+    if (!value) return `${Math.round(fallback * zoomScale)}px`;
+    const numeric = Number.parseFloat(value);
+    if (!Number.isFinite(numeric)) return value;
+    return `${Math.round(numeric * zoomScale)}px`;
+  }, [zoomScale]);
 
   const startEditColumn = (col: SheetGridColumn) => {
     if (!onColumnChange) return;
@@ -331,13 +345,17 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
         {/* Header */}
         <thead className="sticky top-0 z-20 bg-white">
           <tr className="border-b-2 border-gray-300">
-            <th className="w-12 bg-gray-50 border-r border-gray-200" />
+            <th
+              className="bg-gray-50 border-r border-gray-200"
+              style={{ width: `${rowLabelWidth}px` }}
+            />
             {displayColumns.map((col) => (
               <th
                 key={col.key}
-                style={{ width: columnWidths[col.key] || col.width, position: 'relative' }}
-                className="px-3 py-2 text-left font-mono text-[9px] font-bold tracking-widest uppercase text-gray-700 bg-gray-50 border-r border-gray-200 last:border-0"
+                style={{ width: scaleSize(columnWidths[col.key] || col.width, 90), position: 'relative' }}
+                className="px-3 py-2 text-left font-mono font-bold tracking-widest uppercase text-gray-700 bg-gray-50 border-r border-gray-200 last:border-0"
               >
+              <div style={{ fontSize: `${headerFontSize}px` }}>
               <div
                 className="absolute right-0 top-0 h-full w-1 cursor-col-resize"
                 onMouseDown={(e) => handleColResizeMouseDown(col.key, e)}
@@ -372,6 +390,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
                     {col.label}
                   </button>
                 )}
+                </div>
               </th>
             ))}
           </tr>
@@ -383,12 +402,12 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
             <tr
               key={`row-${rowIdx}`}
               className="border-b border-gray-100 hover:bg-gray-50/50 hover:shadow-sm transition-all duration-200"
-              style={{ minHeight: rowHeights[row.rowKey] || '40px' }}
+              style={{ minHeight: scaleSize(rowHeights[row.rowKey] || '40px', 40) }}
             >
               {/* Row label */}
               <td
-                className="w-20 px-2 py-2 bg-gray-50 border-r border-gray-200 text-left relative hover:bg-gray-100 transition-colors duration-200"
-                style={{ height: rowHeights[row.rowKey] || '40px' }}
+                className="px-2 py-2 bg-gray-50 border-r border-gray-200 text-left relative hover:bg-gray-100 transition-colors duration-200"
+                style={{ height: scaleSize(rowHeights[row.rowKey] || '40px', 40), width: `${rowLabelWidth}px` }}
               >
                 <div
                   className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize"
@@ -411,7 +430,8 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
                   <button
                     type="button"
                     onDoubleClick={() => startEditRow(row.rowKey, row.rowLabel || row.rowKey)}
-                    className="w-full text-left font-mono text-[9px] font-bold text-gray-500"
+                    className="w-full text-left font-mono font-bold text-gray-500"
+                    style={{ fontSize: `${rowLabelFontSize}px`, minHeight: `${cellMinHeight}px` }}
                     title="Double-click to rename row"
                   >
                     {row.rowLabel}
@@ -450,7 +470,8 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
                     onKeyDown={handleKeyDown}
                     onMouseDown={handleCellMouseDown}
                     onMouseEnter={handleCellMouseEnter}
-                    width={colDef?.width}
+                    width={scaleSize(columnWidths[cellItem.field] || colDef?.width, 90)}
+                    zoomLevel={zoomLevel}
                   />
                 );
               })}

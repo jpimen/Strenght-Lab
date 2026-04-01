@@ -4,8 +4,9 @@
  * Features: editable grid, formulas, cell selection, keyboard navigation, toolbar, save/load, CSV import/export
  */
 
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import {
+  ChevronDown,
   Save,
   Upload
 } from 'lucide-react';
@@ -25,11 +26,14 @@ interface SpreadsheetProps {
   className?: string;
 }
 
+const ZOOM_OPTIONS = [50, 75, 90, 100, 110, 125, 150, 175, 200];
+
 export const Spreadsheet: React.FC<SpreadsheetProps> = ({
   initialData,
   onDataChange,
   className = ''
 }) => {
+  const [zoomLevel, setZoomLevel] = useState(100);
   const {
     data,
     activeCell,
@@ -138,6 +142,56 @@ export const Spreadsheet: React.FC<SpreadsheetProps> = ({
     dispatch({ type: 'TOGGLE_DARK_MODE' });
   }, [dispatch]);
 
+  const handleZoomChange = useCallback((nextZoom: number) => {
+    const boundedZoom = Math.min(200, Math.max(50, nextZoom));
+    setZoomLevel(boundedZoom);
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    setZoomLevel((current) => {
+      const nextOption = ZOOM_OPTIONS.find((option) => option > current);
+      return nextOption ?? current;
+    });
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoomLevel((current) => {
+      const previousOption = [...ZOOM_OPTIONS].reverse().find((option) => option < current);
+      return previousOption ?? current;
+    });
+  }, []);
+
+  const handleZoomReset = useCallback(() => {
+    setZoomLevel(100);
+  }, []);
+
+  useEffect(() => {
+    const handleZoomShortcut = (event: KeyboardEvent) => {
+      const isModifierPressed = event.ctrlKey || event.metaKey;
+      if (!isModifierPressed) return;
+
+      if (event.key === '+' || event.key === '=') {
+        event.preventDefault();
+        handleZoomIn();
+        return;
+      }
+
+      if (event.key === '-') {
+        event.preventDefault();
+        handleZoomOut();
+        return;
+      }
+
+      if (event.key === '0') {
+        event.preventDefault();
+        handleZoomReset();
+      }
+    };
+
+    window.addEventListener('keydown', handleZoomShortcut);
+    return () => window.removeEventListener('keydown', handleZoomShortcut);
+  }, [handleZoomIn, handleZoomOut, handleZoomReset]);
+
   return (
     <div className={`spreadsheet-container ${darkMode ? 'dark' : ''} ${className}`}>
       <div className="spreadsheet-header">
@@ -160,6 +214,23 @@ export const Spreadsheet: React.FC<SpreadsheetProps> = ({
         />
 
         <div className="spreadsheet-actions">
+          <div className="zoom-control">
+            <select
+              value={zoomLevel}
+              onChange={(event) => handleZoomChange(Number(event.target.value))}
+              className="zoom-select"
+              title="Zoom"
+              aria-label="Zoom"
+            >
+              {ZOOM_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}%
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="zoom-chevron" />
+          </div>
+
           <button
             onClick={handleSave}
             className="action-button"
@@ -207,6 +278,7 @@ export const Spreadsheet: React.FC<SpreadsheetProps> = ({
           activeCell={activeCell}
           selection={selection}
           isEditing={isEditing}
+          zoomLevel={zoomLevel}
           onCellClick={handleCellClick}
           onCellDoubleClick={handleCellDoubleClick}
           onCellChange={handleCellChange}

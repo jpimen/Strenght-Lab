@@ -12,6 +12,7 @@ interface SpreadsheetGridProps {
   activeCell?: string;
   selection?: string[];
   isEditing?: boolean;
+  zoomLevel?: number;
   onCellClick: (cellId: string, event: React.MouseEvent) => void;
   onCellDoubleClick: (cellId: string) => void;
   onCellChange: (cellId: string, value: string) => void;
@@ -22,12 +23,17 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
   activeCell,
   selection = [],
   isEditing = false,
+  zoomLevel = 100,
   onCellClick,
   onCellDoubleClick,
   onCellChange
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const { cells, columns, rows, columnWidths, rowHeights } = data;
+  const zoomScale = zoomLevel / 100;
+  const rowHeaderWidth = Math.max(32, Math.round(40 * zoomScale));
+  const headerHeight = Math.max(22, Math.round(24 * zoomScale));
+  const headerFontSize = Math.max(10, Math.round(12 * zoomScale));
 
   // Generate column headers (A, B, C, ..., Z, AA, AB, etc.)
   const columnHeaders = useMemo(() => {
@@ -103,7 +109,10 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
   return (
     <div className="spreadsheet-grid" ref={gridRef}>
       {/* Corner cell (empty) */}
-      <div className="grid-corner"></div>
+      <div
+        className="grid-corner"
+        style={{ width: rowHeaderWidth, height: headerHeight }}
+      />
 
       {/* Column headers */}
       <div className="grid-column-headers">
@@ -111,7 +120,11 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
           <div
             key={`col-${index}`}
             className="grid-header grid-column-header"
-            style={{ width: columnWidths[index] || 100 }}
+            style={{
+              width: (columnWidths[index] || 100) * zoomScale,
+              height: headerHeight,
+              fontSize: headerFontSize,
+            }}
           >
             {header}
           </div>
@@ -126,7 +139,11 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
             <div
               key={`row-${index}`}
               className="grid-header grid-row-header"
-              style={{ height: rowHeights[index] || 24 }}
+              style={{
+                width: rowHeaderWidth,
+                height: (rowHeights[index] || 24) * zoomScale,
+                fontSize: headerFontSize,
+              }}
             >
               {header}
             </div>
@@ -151,8 +168,9 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
                     isSelected={isSelected}
                     isActive={isActive}
                     isEditing={isEditing && isActive}
-                    width={columnWidths[colIndex] || 100}
-                    height={rowHeights[rowIndex] || 24}
+                    width={(columnWidths[colIndex] || 100) * zoomScale}
+                    height={(rowHeights[rowIndex] || 24) * zoomScale}
+                    zoomLevel={zoomLevel}
                     onClick={(event) => handleMouseDown(cellId, event)}
                     onDoubleClick={() => onCellDoubleClick(cellId)}
                     onMouseEnter={(event) => handleMouseEnter(cellId, event)}

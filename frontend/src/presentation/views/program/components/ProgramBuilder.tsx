@@ -9,6 +9,7 @@ import {
   RotateCcw,
   RotateCw,
   AlertCircle,
+  ChevronDown,
   Save,
   Upload,
   Download,
@@ -36,6 +37,8 @@ import {
 import { getAutocompleteSuggestions } from '../utils/autocomplete';
 import type { AutocompleteOption } from '../utils/autocomplete';
 import type { ProgramBuilderSnapshot, ProgramSheet } from '../utils/programDraftCache';
+
+const ZOOM_OPTIONS = [50, 75, 90, 100, 110, 125, 150, 175, 200];
 
 const buildInitialCells = (weeks: number): CellState => {
   const newCells: CellState = {};
@@ -155,6 +158,7 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
   const [showVariablesPanel, setShowVariablesPanel] = useState(true);
   const [showErrorPanel, setShowErrorPanel] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(100);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -432,6 +436,56 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
   // Get error cells
   const errorCells = getErrorCells(cells);
 
+  const handleZoomChange = useCallback((nextZoom: number) => {
+    const boundedZoom = Math.min(200, Math.max(50, nextZoom));
+    setZoomLevel(boundedZoom);
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    setZoomLevel((current) => {
+      const nextOption = ZOOM_OPTIONS.find((option) => option > current);
+      return nextOption ?? current;
+    });
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoomLevel((current) => {
+      const previousOption = [...ZOOM_OPTIONS].reverse().find((option) => option < current);
+      return previousOption ?? current;
+    });
+  }, []);
+
+  const handleZoomReset = useCallback(() => {
+    setZoomLevel(100);
+  }, []);
+
+  useEffect(() => {
+    const handleZoomShortcut = (event: KeyboardEvent) => {
+      const isModifierPressed = event.ctrlKey || event.metaKey;
+      if (!isModifierPressed) return;
+
+      if (event.key === '+' || event.key === '=') {
+        event.preventDefault();
+        handleZoomIn();
+        return;
+      }
+
+      if (event.key === '-') {
+        event.preventDefault();
+        handleZoomOut();
+        return;
+      }
+
+      if (event.key === '0') {
+        event.preventDefault();
+        handleZoomReset();
+      }
+    };
+
+    window.addEventListener('keydown', handleZoomShortcut);
+    return () => window.removeEventListener('keydown', handleZoomShortcut);
+  }, [handleZoomIn, handleZoomOut, handleZoomReset]);
+
 
   return (
     <div
@@ -520,6 +574,23 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
             >
               [VAR]
             </button>
+
+            <div className="relative flex items-center">
+              <select
+                value={zoomLevel}
+                onChange={(event) => handleZoomChange(Number(event.target.value))}
+                className="appearance-none border border-gray-300 bg-white text-gray-700 rounded-md px-3 py-1.5 pr-8 text-[11px] font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
+                title="Zoom"
+                aria-label="Program Builder Zoom"
+              >
+                {ZOOM_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}%
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 w-3.5 h-3.5 text-gray-500 pointer-events-none" />
+            </div>
           </div>
         </div>
 
@@ -582,6 +653,7 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
             weekCount={initialWeeks}
             dayCount={3}
             exerciseCount={5}
+            zoomLevel={zoomLevel}
           />
 
           {/* Column Summary Bar */}

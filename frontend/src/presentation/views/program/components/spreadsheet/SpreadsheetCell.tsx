@@ -14,6 +14,7 @@ interface SpreadsheetCellProps {
   isEditing: boolean;
   width: number;
   height: number;
+  zoomLevel?: number;
   onClick: (event: React.MouseEvent) => void;
   onDoubleClick: () => void;
   onMouseEnter: (event: React.MouseEvent) => void;
@@ -28,6 +29,7 @@ export const SpreadsheetCell: React.FC<SpreadsheetCellProps> = ({
   isEditing,
   width,
   height,
+  zoomLevel = 100,
   onClick,
   onDoubleClick,
   onMouseEnter,
@@ -37,6 +39,10 @@ export const SpreadsheetCell: React.FC<SpreadsheetCellProps> = ({
   const cellRef = useRef<HTMLDivElement>(null);
 
   const displayValue = data.computed || data.value || '';
+  const zoomScale = zoomLevel / 100;
+  const cellFontSize = Math.max(8, 13 * zoomScale);
+  const cellPaddingY = Math.max(1, 2 * zoomScale);
+  const cellPaddingX = Math.max(2, 4 * zoomScale);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -79,6 +85,7 @@ export const SpreadsheetCell: React.FC<SpreadsheetCellProps> = ({
   const cellStyle: React.CSSProperties = {
     width: `${width}px`,
     height: `${height}px`,
+    fontSize: `${cellFontSize}px`,
     ...data.format
   };
 
@@ -138,7 +145,7 @@ export const SpreadsheetCell: React.FC<SpreadsheetCellProps> = ({
             whiteSpace: 'nowrap',
             display: 'flex',
             alignItems: 'center',
-            padding: '0 4px'
+            padding: `${cellPaddingY}px ${cellPaddingX}px`
           }}
         >
           {displayValue}

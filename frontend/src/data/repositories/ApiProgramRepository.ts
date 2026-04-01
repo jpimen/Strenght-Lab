@@ -36,25 +36,43 @@ async function request<T>(
 }
 
 export class ApiProgramRepository implements IProgramRepository {
-  async getProgramData(): Promise<ProgramData> {
-    // For now, this might still return a mock or call a specific endpoint
-    // if we had a "get individual program" API. 
-    // Since we're mostly building new programs, let's keep it simple.
-    throw new Error('NOT_IMPLEMENTED');
+  async getProgramData(programId: string): Promise<ProgramData> {
+    return request<ProgramData>(`/programs/${programId}`);
   }
 
-  async publishProgram(input: ProgramData, builderData: any): Promise<{ shareCode: string }> {
-    return request<{ shareCode: string }>('/programs/create', {
+  async createProgram(input: ProgramData, builderData: any): Promise<{ shareCode: string; id: string }> {
+    return request<{ shareCode: string; id: string }>('/programs/create', {
       method: 'POST',
       body: JSON.stringify({
         name: input.name,
         athleteName: input.athleteName,
         goal: input.goal,
         durationWeeks: input.durationWeeks,
-        status: 'published',
+        status: 'PUBLISHED',
         builderData: builderData,
       }),
     });
+  }
+
+  async updateProgram(programId: string, input: ProgramData, builderData: any): Promise<{ shareCode: string; id: string }> {
+    return request<{ shareCode: string; id: string }>(`/programs/${programId}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        name: input.name,
+        athleteName: input.athleteName,
+        goal: input.goal,
+        durationWeeks: input.durationWeeks,
+        status: input.status === 'PUBLISHED' ? 'PUBLISHED' : 'CREATED',
+        builderData: builderData,
+      }),
+    });
+  }
+
+  async publishProgram(input: ProgramData, builderData: any): Promise<{ shareCode: string; id: string }> {
+    if (input.id && input.id !== 'new') {
+      return this.updateProgram(input.id, input, builderData);
+    }
+    return this.createProgram(input, builderData);
   }
 }
 

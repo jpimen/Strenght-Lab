@@ -130,12 +130,12 @@ export const SheetCell: React.FC<SheetCellProps> = ({
         }
       }}
       className={clsx(
-        'relative px-3 py-2 text-[11px] font-sans border border-gray-200 transition-colors select-none',
+        'relative px-3 py-2 text-[11px] font-sans border border-gray-200 transition-all duration-200 select-none',
         isReadonly && 'bg-gray-50 cursor-default',
-        !isReadonly && 'cursor-cell',
+        !isReadonly && 'cursor-cell hover:shadow-sm hover:border-gray-300',
         isActive && 'ring-2 ring-orange-500 ring-inset z-10',
         isSelected && !isActive && 'bg-blue-50 ring-1 ring-blue-300',
-        hasError && 'bg-amber-50 ring-1 ring-amber-500',
+        hasError && 'bg-amber-50 ring-1 ring-amber-500 animate-pulse',
         isFormula && !hasError && 'bg-orange-50/5',
         isDependency && !isActive && 'ring-1 ring-blue-400',
         isDependent && !isActive && 'ring-1 ring-orange-400'

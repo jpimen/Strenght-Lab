@@ -8,11 +8,13 @@ export default function DashboardView() {
   if (isLoading) return <div className="p-8 text-iron-red animate-pulse">LOADING_DATA_STREAM...</div>;
   if (error || !data) return <div className="p-8 text-red-600">SYSTEM_ERROR_ENCOUNTERED</div>;
 
+  const uptimePrefix = data.stats.uptimeChange > 0 ? '+' : '';
+
   return (
-    <div className="animate-in fade-in duration-500 max-w-7xl mx-auto flex flex-col gap-6 pb-12">
+    <div className="max-w-7xl mx-auto flex flex-col gap-6 pb-12">
       {/* Header */}
-      <div className="flex justify-between items-end mb-4">
-        <div>
+      <div className="flex justify-between items-end mb-4 animate-fadeIn">
+        <div className="animate-slideUp delay-100">
           <h2 className="text-5xl font-black text-iron-900 tracking-tighter mb-1 uppercase font-sans">
             OPERATIONS
           </h2>
@@ -20,7 +22,7 @@ export default function DashboardView() {
             REAL-TIME PERFORMANCE MONITORING
           </p>
         </div>
-        <button className="bg-iron-red text-white uppercase text-sm font-bold py-3 px-6 hover:bg-red-700 transition-colors flex items-center gap-2 tracking-wider shadow-sm font-sans">
+        <button className="bg-iron-red text-white uppercase text-sm font-bold py-3 px-6 transition-all duration-200 ease-out hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 disabled:opacity-60 flex items-center gap-2 tracking-wider shadow-sm font-sans animate-slideUp delay-150">
           <Plus className="w-4 h-4" />
           NEW PROGRAM
         </button>
@@ -30,7 +32,7 @@ export default function DashboardView() {
       <div className="grid grid-cols-12 gap-6">
         
         {/* Live Protocols Count */}
-        <div className="col-span-12 lg:col-span-3 panel flex flex-col justify-between border-l-4 border-l-iron-red border-y-gray-200 border-r-gray-200">
+        <div className="col-span-12 lg:col-span-3 panel flex flex-col justify-between border-l-4 border-l-iron-red border-y-gray-200 border-r-gray-200 animate-slideUp delay-200 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
           <h3 className="text-[10px] font-mono font-bold tracking-[0.1em] text-gray-400 uppercase mb-8">
             LIVE PROTOCOLS
           </h3>
@@ -39,24 +41,24 @@ export default function DashboardView() {
               {data.stats.activeCount}
             </div>
             <div className="font-mono text-[10px] text-green-500 font-bold tracking-widest uppercase">
-              +{data.stats.uptimeChange} SYSTEM UPTIME
+              {uptimePrefix}{data.stats.uptimeChange} SESSION_DELTA_7D
             </div>
           </div>
         </div>
 
         {/* Athlete Cards */}
-        {data.liveProtocols.map((protocol) => (
-          <div key={protocol.id} className="col-span-12 lg:col-span-4 panel flex flex-col">
+        {data.liveProtocols.map((protocol, idx) => (
+          <div key={protocol.id} style={{ animationDelay: `${(idx + 1) * 50}ms` }} className="col-span-12 lg:col-span-4 panel flex flex-col animate-slideUp transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group cursor-pointer">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <div className="text-[10px] font-mono font-bold tracking-widest text-gray-400 uppercase mb-1">
                   ATHLETE
                 </div>
-                <div className="text-lg font-black tracking-tighter text-iron-900 uppercase">
+                <div className="text-lg font-black tracking-tighter text-iron-900 uppercase transition-colors duration-200 group-hover:text-iron-red">
                   {protocol.athleteName}
                 </div>
               </div>
-              <div className={clsx("badge", 
+              <div className={clsx("badge transition-all duration-200 group-hover:shadow-md", 
                 protocol.status === 'PEAK_WEEK' ? 'badge-red' : 'badge-outline'
               )}>
                 {protocol.status.replace('_', ' ')}
@@ -79,8 +81,8 @@ export default function DashboardView() {
                   <span>PROGRESS</span>
                   <span>{protocol.progressText}</span>
                 </div>
-                <div className="h-2 bg-gray-100 w-full overflow-hidden">
-                  <div className="h-full bg-iron-red" style={{ width: `${protocol.progressPercent}%` }} />
+                <div className="h-2 bg-gray-100 w-full overflow-hidden rounded">
+                  <div className="h-full bg-iron-red transition-all duration-500 ease-out" style={{ width: `${protocol.progressPercent}%` }} />
                 </div>
               </div>
             )}
@@ -91,13 +93,13 @@ export default function DashboardView() {
                   <span>INTENSITY OUTPUT</span>
                   <span>{protocol.intensityOutputText}</span>
                 </div>
-                <div className="h-2 bg-gray-100 w-full overflow-hidden">
-                  <div className="h-full bg-iron-red" style={{ width: `${protocol.intensityOutputPercent}%` }} />
+                <div className="h-2 bg-gray-100 w-full overflow-hidden rounded">
+                  <div className="h-full bg-iron-red transition-all duration-500 ease-out" style={{ width: `${protocol.intensityOutputPercent}%` }} />
                 </div>
               </div>
             )}
 
-            <div className="mt-auto border-t border-gray-100 pt-4 flex justify-between items-center group cursor-pointer">
+            <div className="mt-auto border-t border-gray-100 pt-4 flex justify-between items-center">
               <div>
                 <div className="text-[10px] font-mono font-bold tracking-widest text-gray-400 uppercase mb-1">
                   NEXT SESSION
@@ -106,19 +108,25 @@ export default function DashboardView() {
                   {protocol.nextSession}
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-iron-red transition-colors" />
+              <ChevronRight className="w-4 h-4 text-gray-300 transition-all duration-300 group-hover:text-iron-red group-hover:translate-x-1" />
             </div>
           </div>
         ))}
+
+        {data.liveProtocols.length === 0 && (
+          <div className="col-span-12 lg:col-span-9 panel flex items-center justify-center min-h-48 text-[11px] font-mono font-bold tracking-widest text-gray-400 uppercase">
+            NO_LIVE_PROTOCOLS_WITH_LOGGED_ACTIVITY
+          </div>
+        )}
       </div>
 
       {/* Recents Table */}
-      <div className="panel border-t-4 border-t-iron-red px-0 py-0 overflow-hidden">
+      <div className="panel border-t-4 border-t-iron-red px-0 py-0 overflow-hidden animate-slideUp delay-400 transition-all duration-300 hover:shadow-lg">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h3 className="text-sm font-black tracking-widest text-iron-900 uppercase">
             RECENTLY_MODIFIED_PROTOCOLS
           </h3>
-          <button className="text-[10px] font-mono font-bold tracking-widest text-gray-400 uppercase hover:text-iron-900 transition-colors">
+          <button className="text-[10px] font-mono font-bold tracking-widest text-gray-400 uppercase hover:text-iron-900 transition-colors active:scale-95 focus:outline-none focus:ring-2 focus:ring-iron-red focus:ring-offset-2">
             VIEW ALL ARCHIVES
           </button>
         </div>
@@ -134,8 +142,8 @@ export default function DashboardView() {
               </tr>
             </thead>
             <tbody>
-              {data.recentProtocols.map((p) => (
-                <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              {data.recentProtocols.map((p, idx) => (
+                <tr key={p.id} style={{ animationDelay: `${idx * 30}ms` }} className="border-b border-gray-100 hover:bg-gray-50 transition-all duration-200 ease-out animate-fadeIn delay-500">
                   <td className="py-4 px-6 font-mono text-xs font-bold text-iron-red tracking-wider">
                     {p.protocolId}
                   </td>
@@ -150,7 +158,7 @@ export default function DashboardView() {
                   </td>
                   <td className="py-4 px-6 text-right">
                     <span className={clsx(
-                      "badge",
+                      "badge transition-all duration-200 hover:shadow-md",
                       p.status === 'STAGED' ? 'badge-outline' :
                       p.status === 'DEPLOYED' ? 'badge-red' :
                       'badge-green text-[#38a169] border-[#38a169]'
@@ -168,7 +176,7 @@ export default function DashboardView() {
       {/* Bottom Grid */}
       <div className="grid grid-cols-12 gap-6 pb-8">
         {/* Tonnage Load */}
-        <div className="col-span-12 lg:col-span-6 panel">
+        <div className="col-span-12 lg:col-span-6 panel animate-slideUp delay-450 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
            <h3 className="text-[11px] font-mono font-bold tracking-widest text-gray-500 uppercase mb-4">
             TOTAL TONNAGE LOAD (CURRENT CYCLE)
           </h3>
@@ -183,39 +191,53 @@ export default function DashboardView() {
           
           {/* Simple static bar chart representation */}
           <div className="flex items-end gap-2 h-16 w-full">
-            {[10, 15, 20, 25, 30, 35].map((val, i) => (
+            {data.tonnageLoad.history.map((value, i) => {
+              const maxValue = Math.max(...data.tonnageLoad.history, 1);
+              const height = Math.max(18, Math.round((value / maxValue) * 100));
+              return (
               <div 
                 key={i} 
-                className="flex-1 bg-gradient-to-t from-red-600 to-red-300 opacity-90 transition-all hover:opacity-100" 
-                style={{ height: `${val + 40}%` }}
+                className="flex-1 bg-gradient-to-t from-red-600 to-red-300 opacity-90 transition-all duration-300 hover:opacity-100 hover:scale-110" 
+                style={{ height: `${height}%` }}
               />
-            ))}
+              );
+            })}
           </div>
         </div>
 
         {/* System Alerts */}
-        <div className="col-span-12 lg:col-span-6 panel bg-transparent border-none shadow-none p-0 flex flex-col gap-4">
+        <div className="col-span-12 lg:col-span-6 panel bg-transparent border-none shadow-none p-0 flex flex-col gap-4 animate-slideUp delay-500">
            <h3 className="text-[11px] font-mono font-bold tracking-widest text-gray-500 uppercase px-1">
             SYSTEM ALERTS
           </h3>
           <div className="flex flex-col gap-3">
-             {data.alerts.map((alert) => (
-                <div key={alert.id} className={clsx(
-                  "p-4 border relative overflow-hidden",
-                  alert.type === 'WARNING' ? 'bg-gray-50 border-gray-200' : 'bg-green-50/50 border-green-200'
+             {data.alerts.map((alert, idx) => (
+                <div key={alert.id} style={{ animationDelay: `${idx * 50}ms` }} className={clsx(
+                  "p-4 border relative overflow-hidden animate-slideUp transition-all duration-300",
+                  alert.type === 'WARNING'
+                    ? 'bg-gray-50 border-gray-200 hover:shadow-md hover:-translate-y-0.5'
+                    : alert.type === 'SUCCESS'
+                      ? 'bg-green-50/50 border-green-200 hover:shadow-md hover:-translate-y-0.5'
+                      : 'bg-white border-gray-200 hover:shadow-md hover:-translate-y-0.5'
                 )}>
                   <div className="flex gap-4 relative z-10">
                     <div className="mt-0.5 flex-shrink-0">
                       {alert.type === 'WARNING' ? (
-                         <TriangleAlert className="w-5 h-5 text-iron-red flex-shrink-0" fill="white" />
+                         <TriangleAlert className="w-5 h-5 text-iron-red flex-shrink-0 transition-transform duration-300 hover:scale-110" fill="white" />
+                      ) : alert.type === 'SUCCESS' ? (
+                         <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 animate-pop" fill="white" />
                       ) : (
-                         <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" fill="white" />
+                         <CheckCircle2 className="w-5 h-5 text-gray-500 flex-shrink-0 animate-pop" fill="white" />
                       )}
                     </div>
                     <div className="flex-1">
                        <div className={clsx(
-                         "text-[10px] font-mono font-bold tracking-widest uppercase mb-1",
-                         alert.type === 'WARNING' ? 'text-iron-red' : 'text-green-600'
+                         "text-[10px] font-mono font-bold tracking-widest uppercase mb-1 transition-colors duration-200",
+                         alert.type === 'WARNING'
+                           ? 'text-iron-red'
+                           : alert.type === 'SUCCESS'
+                             ? 'text-green-600'
+                             : 'text-gray-500'
                        )}>
                          {alert.title}
                        </div>

@@ -12,7 +12,7 @@ export default function RosterSelectorView() {
       {/* Header */}
       <div className="p-8 bg-white border-b border-gray-200">
         <h1 className="text-4xl font-black text-iron-900 tracking-tighter mb-2">
-          ROSTER_SELECTOR
+          Program
         </h1>
         <div className="text-[10px] font-mono font-bold tracking-[0.3em] text-gray-500 uppercase">
           DATABASE_VIEW: ACTIVE_ATHLETES

@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import { PageTransition } from '../PageTransition';
 
 export default function Layout() {
   return (
@@ -9,7 +10,9 @@ export default function Layout() {
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar />
         <main className="flex-1 overflow-y-auto w-full p-8 relative">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </main>
       </div>
     </div>

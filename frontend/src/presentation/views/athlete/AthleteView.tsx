@@ -25,20 +25,20 @@ export default function AthleteView() {
   if (isLoading || !data) return <div className="p-8 text-iron-red animate-pulse">LOADING_ATHLETE_DATA...</div>;
 
   return (
-    <div className="animate-in fade-in duration-500 max-w-7xl mx-auto flex flex-col gap-6 pb-12">
+    <div className="max-w-7xl mx-auto flex flex-col gap-6 pb-12">
       {/* Header Panel */}
-      <div className="bg-white border-y sm:border border-gray-200 shadow-sm flex flex-col lg:flex-row pb-0">
-        <div className="w-full lg:w-1/3 bg-gray-900 aspect-[4/3] lg:aspect-auto relative overflow-hidden flex-shrink-0">
+      <div className="bg-white border-y sm:border border-gray-200 shadow-sm flex flex-col lg:flex-row pb-0 animate-slideUp">
+        <div className="w-full lg:w-1/3 bg-gray-900 aspect-[4/3] lg:aspect-auto relative overflow-hidden flex-shrink-0 animate-slideLeft delay-100">
           <img src={data.imagePlaceholderUrl} alt={data.name} className="w-full h-full object-cover object-top opacity-80" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         </div>
-        <div className="p-8 lg:p-10 flex flex-col justify-between flex-1">
+        <div className="p-8 lg:p-10 flex flex-col justify-between flex-1 animate-fadeIn delay-150">
           <div>
             <div className="flex justify-between items-start mb-6">
               <div className="text-[10px] font-mono font-bold tracking-[0.2em] text-gray-500 uppercase">
                 ID_ENTRY: {data.idEntry}
               </div>
-              <div className="border border-iron-red text-iron-red text-[10px] font-mono font-bold px-3 py-1 tracking-widest uppercase">
+              <div className="border border-iron-red text-iron-red text-[10px] font-mono font-bold px-3 py-1 tracking-widest uppercase transition-all duration-300 hover:bg-red-50 hover:shadow-sm">
                 STATUS: <br/>{data.status}
               </div>
             </div>
@@ -48,7 +48,7 @@ export default function AthleteView() {
             </h2>
             
             <div className="flex gap-16 mb-8">
-              <div>
+              <div className="animate-slideUp delay-200">
                  <div className="text-[10px] font-mono font-bold text-gray-500 tracking-widest uppercase mb-1">
                   MASS_CLASS
                  </div>
@@ -56,7 +56,7 @@ export default function AthleteView() {
                    {data.massClass} <span className="text-sm font-bold text-gray-500">KG</span>
                  </div>
               </div>
-              <div>
+              <div className="animate-slideUp delay-250">
                  <div className="text-[10px] font-mono font-bold text-gray-500 tracking-widest uppercase mb-1">
                   SPEC_OBJECTIVE
                  </div>
@@ -64,7 +64,7 @@ export default function AthleteView() {
                    {data.specObjective.toFixed(1)} <span className="text-sm font-bold text-gray-500">KG</span>
                  </div>
               </div>
-              <div>
+              <div className="animate-slideUp delay-300">
                  <div className="text-[10px] font-mono font-bold text-gray-500 tracking-widest uppercase mb-1">
                   CURRENT_PROTOCOL
                  </div>
@@ -75,14 +75,15 @@ export default function AthleteView() {
             </div>
           </div>
           
-          <div className="flex gap-6 mt-6 border-t border-gray-100 pt-6">
-             {['OVERVIEW', 'PROGRAMS', 'PROGRESS', 'CHAT', 'NOTES'].map(tab => (
+          <div className="flex gap-6 mt-6 border-t border-gray-100 pt-6 animate-slideUp delay-350">
+             {['OVERVIEW', 'PROGRAMS', 'PROGRESS', 'CHAT', 'NOTES'].map((tab, idx) => (
                <button 
                  key={tab} 
                  onClick={() => setActiveTab(tab)}
+                 style={{ animationDelay: `${(idx + 4) * 50}ms` }}
                  className={clsx(
-                   "text-[10px] font-mono tracking-widest uppercase font-bold pb-2 border-b-2 transition-colors",
-                   tab === activeTab ? 'border-iron-red text-iron-900' : 'border-transparent text-gray-400 hover:text-iron-900'
+                   "text-[10px] font-mono tracking-widest uppercase font-bold pb-2 border-b-2 transition-all duration-200 ease-out animate-fadeIn",
+                   tab === activeTab ? 'border-iron-red text-iron-900 scale-105' : 'border-transparent text-gray-400 hover:text-iron-900 hover:scale-110'
                  )}
                >
                  {tab}
@@ -102,8 +103,8 @@ export default function AthleteView() {
           
           {/* 1RM Cards */}
           <div className="grid grid-cols-3 gap-6">
-            {(Object.entries(data.maxStats) as [keyof typeof data.maxStats, typeof data.maxStats.squat][]).map(([lift, stat]) => (
-              <div key={lift} className="panel">
+            {(Object.entries(data.maxStats) as [keyof typeof data.maxStats, typeof data.maxStats.squat][]).map(([lift, stat], idx) => (
+              <div key={lift} style={{ animationDelay: `${(idx + 4) * 50}ms` }} className="panel animate-slideUp">
                  <div className="text-[10px] font-mono font-bold tracking-widest text-gray-400 uppercase mb-4">
                   {lift} 1RM
                  </div>
@@ -121,7 +122,7 @@ export default function AthleteView() {
           </div>
 
           {/* Performance Trajectory */}
-          <div className="panel h-[400px] flex flex-col">
+          <div className="panel h-[400px] flex flex-col animate-slideUp delay-100">
             <div className="flex justify-between items-center mb-8 pr-4">
                <h3 className="text-xs font-black tracking-widest text-iron-900 uppercase">
                 PERFORMANCE_TRAJECTORY
@@ -166,13 +167,13 @@ export default function AthleteView() {
 
         {/* Right Sidebar */}
         <div className="flex flex-col gap-6">
-          <div className="panel p-0 overflow-hidden flex flex-col">
+          <div className="panel p-0 overflow-hidden flex flex-col animate-slideUp delay-150">
             <h3 className="text-[10px] font-mono font-bold tracking-widest text-iron-900 uppercase p-6 pb-4 border-b border-gray-100">
               RECENT_ENTRIES
             </h3>
             <div className="flex flex-col flex-1 divide-y divide-gray-100">
-               {data.recentEntries.map(entry => (
-                 <div key={entry.id} className="p-6">
+               {data.recentEntries.map((entry, idx) => (
+                 <div key={entry.id} style={{ animationDelay: `${(idx + 5) * 50}ms` }} className="p-6 animate-fadeIn delay-200">
                    <div className="flex justify-between items-start mb-2">
                      <span className="text-[10px] font-mono font-bold text-gray-800 tracking-wider">
                        {entry.date}
@@ -193,16 +194,16 @@ export default function AthleteView() {
                  </div>
                ))}
             </div>
-            <button className="w-full bg-white border-y border-gray-100 py-4 text-[10px] font-mono font-bold tracking-widest text-iron-900 hover:bg-gray-50 transition-colors uppercase">
+            <button className="w-full bg-white border-y border-gray-100 py-4 text-[10px] font-mono font-bold tracking-widest text-iron-900 hover:bg-gray-50 hover:shadow-sm transition-all duration-300 active:scale-95 uppercase">
               EXPORT_SESSION_DATA
             </button>
-            <button className="w-full bg-iron-900 text-white py-4 text-xs font-bold tracking-widest hover:bg-black transition-colors uppercase flex items-center justify-center gap-2 border-t-2 border-transparent">
+            <button className="w-full bg-iron-900 text-white py-4 text-xs font-bold tracking-widest hover:bg-black hover:shadow-lg active:scale-95 transition-all duration-300 uppercase flex items-center justify-center gap-2 border-t-2 border-transparent">
               <Plus className="w-4 h-4" />
               LOG_ENTRY
             </button>
           </div>
 
-          <div className="panel flex flex-col gap-6">
+          <div className="panel flex flex-col gap-6 animate-slideUp delay-200">
             <h3 className="text-[10px] font-mono font-bold tracking-widest text-iron-900 uppercase">
               CALIBRATION_INDEX
             </h3>
@@ -212,14 +213,14 @@ export default function AthleteView() {
                 { label: 'CNS_LOAD', val: data.calibration.cnsLoad },
                 { label: 'INTEGRITY', val: data.calibration.integrity },
                 { label: 'RECOVERY', val: data.calibration.recovery, isRed: true },
-              ].map(item => (
-                <div key={item.label}>
+              ].map((item, idx) => (
+                <div key={item.label} style={{ animationDelay: `${(idx + 8) * 50}ms` }} className="animate-fadeIn delay-300">
                   <div className="flex justify-between text-[9px] font-mono font-bold text-gray-500 uppercase mb-2 tracking-widest">
                     <span>{item.label}</span>
                     <span className={item.isRed ? 'text-iron-red' : 'text-iron-900'}>{item.val}%</span>
                   </div>
                   <div className="h-1 bg-gray-100 w-full overflow-hidden">
-                    <div className={clsx("h-full", item.isRed ? "bg-iron-red" : "bg-iron-900")} style={{ width: `${item.val}%` }} />
+                    <div className={clsx("h-full transition-all duration-500 ease-out", item.isRed ? "bg-iron-red" : "bg-iron-900")} style={{ width: `${item.val}%` }} />
                   </div>
                 </div>
               ))}
@@ -233,16 +234,16 @@ export default function AthleteView() {
       </div>
 
       {/* Raw Performance Logs Table */}
-      <div className="panel border-none p-0">
+      <div className="panel border-none p-0 animate-slideUp delay-300">
          <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h3 className="text-xs font-black tracking-widest text-iron-900 uppercase">
             RAW_PERFORMANCE_LOGS
           </h3>
           <div className="flex gap-4">
-            <button className="text-gray-400 hover:text-iron-900 transition-colors">
+            <button className="text-gray-400 hover:text-iron-900 hover:scale-110 active:scale-95 transition-all duration-300">
               <Filter className="w-4 h-4" />
             </button>
-            <button className="text-gray-400 hover:text-iron-900 transition-colors">
+            <button className="text-gray-400 hover:text-iron-900 hover:scale-110 active:scale-95 transition-all duration-300">
               <CloudDownload className="w-4 h-4" />
             </button>
           </div>
@@ -259,8 +260,8 @@ export default function AthleteView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {data.rawLogs.map(log => (
-                <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
+              {data.rawLogs.map((log, idx) => (
+                <tr key={log.id} style={{ animationDelay: `${idx * 30}ms` }} className="animate-fadeIn delay-500 hover:bg-gray-50/50 transition-all duration-200">
                   <td className="py-4 px-6 font-mono text-[11px] font-bold text-iron-900 tracking-wider">
                     {log.timestamp}
                   </td>

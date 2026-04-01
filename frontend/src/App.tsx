@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { ToastProvider } from './presentation/components/ToastProvider';
 import Layout from './presentation/components/layout/Layout';
 import RequireAuth from './presentation/auth/RequireAuth';
 import DashboardView from './presentation/views/dashboard/DashboardView';
@@ -17,7 +18,8 @@ import PrivacyView from './presentation/views/public/PrivacyView';
 
 function App() {
   return (
-    <Routes>
+    <ToastProvider>
+      <Routes>
       {/* Public */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginView />} />
@@ -43,6 +45,7 @@ function App() {
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
+    </ToastProvider>
   );
 }
 

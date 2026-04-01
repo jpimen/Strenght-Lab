@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { DashboardData } from '../../domain/entities/DashboardData';
-import { dashboardRepository } from '../../data/repositories/MockDashboardRepository';
+import { dashboardRepository } from '../../data/repositories/ApiDashboardRepository';
 
 export function useDashboardViewModel() {
   const [data, setData] = useState<DashboardData | null>(null);

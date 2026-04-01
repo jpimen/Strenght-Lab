@@ -69,31 +69,31 @@ export const ColumnSummaryBar: React.FC<ColumnSummaryBarProps> = ({
 
   if (!summary) {
     return (
-      <div className="px-4 py-2 text-[10px] font-mono text-gray-400 border-t border-gray-200 bg-gray-50">
+      <div className="px-4 py-2 text-[10px] font-mono text-gray-400 border-t border-gray-200 bg-gray-50 animate-fadeIn">
         NO_SELECTION
       </div>
     );
   }
 
   return (
-    <div className="px-4 py-2 text-[10px] font-mono text-gray-700 border-t border-gray-200 bg-gray-50 flex items-center gap-8">
-      <div>
-        SELECTION: <span className="text-orange-600 font-bold">{selectionRange?.start || activeCell}</span>
+    <div className="px-4 py-2 text-[10px] font-mono text-gray-700 border-t border-gray-200 bg-gray-50 flex items-center gap-8 animate-slideUp">
+      <div className="animate-slideRight delay-100">
+        SELECTION: <span className="text-orange-600 font-bold transition-all duration-300">{selectionRange?.start || activeCell}</span>
       </div>
       <div className="flex items-center gap-6">
-        <div>
+        <div className="animate-slideRight delay-150 transition-all duration-300">
           COUNT: <span className="text-gray-900 font-bold">{summary.count}</span>
         </div>
-        <div>
+        <div className="animate-slideRight delay-200 transition-all duration-300">
           SUM: <span className="text-gray-900 font-bold">{summary.sum}</span>
         </div>
-        <div>
+        <div className="animate-slideRight delay-250 transition-all duration-300">
           AVG: <span className="text-gray-900 font-bold">{summary.avg}</span>
         </div>
-        <div>
+        <div className="animate-slideRight delay-300 transition-all duration-300">
           MIN: <span className="text-gray-900 font-bold">{summary.min}</span>
         </div>
-        <div>
+        <div className="animate-slideRight delay-350 transition-all duration-300">
           MAX: <span className="text-gray-900 font-bold">{summary.max}</span>
         </div>
       </div>

@@ -33,13 +33,13 @@ const mockProgram: ProgramData = {
 };
 
 export class MockProgramRepository implements IProgramRepository {
-  async getProgramData(): Promise<ProgramData> {
-    return new Promise(resolve => setTimeout(() => resolve(mockProgram), 300));
+  async getProgramData(_programId: string): Promise<ProgramData> {
+    return new Promise((resolve) => setTimeout(() => resolve(mockProgram), 300));
   }
 
-  async publishProgram(input: ProgramData, builderData: any): Promise<{ shareCode: string }> {
+  async publishProgram(input: ProgramData, builderData: any): Promise<{ shareCode: string; id: string }> {
     console.log('Mock publishProgram', input, builderData);
-    return { shareCode: 'ABCD12' };
+    return { shareCode: 'ABCD12', id: input.id || 'prg1' };
   }
 }
 

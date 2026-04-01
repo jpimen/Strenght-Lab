@@ -80,7 +80,7 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
         top: `${y}px`,
         left: `${x}px`,
       }}
-      className="bg-white border border-gray-300 rounded shadow-lg max-h-[240px] overflow-y-auto z-50"
+      className="bg-white border border-gray-300 rounded shadow-lg max-h-[240px] overflow-y-auto z-50 animate-scaleIn origin-top-left"
     >
       {options.map((option, idx) => (
         <div
@@ -89,10 +89,11 @@ export const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
             if (el) itemsRef.current[idx] = el;
           }}
           onClick={() => onSelect(option)}
+          style={{ animationDelay: `${idx * 30}ms` }}
           className={clsx(
-            'px-3 py-2 text-[11px] font-mono border-b border-gray-100 cursor-pointer last:border-0',
+            'px-3 py-2 text-[11px] font-mono border-b border-gray-100 cursor-pointer last:border-0 animate-fadeIn hover:shadow-sm transition-all duration-200 active:scale-95',
             idx === selectedIndex
-              ? 'bg-orange-50 border-l-2 border-l-orange-600'
+              ? 'bg-orange-50 border-l-2 border-l-orange-600 shadow-sm'
               : 'hover:bg-gray-50'
           )}
         >

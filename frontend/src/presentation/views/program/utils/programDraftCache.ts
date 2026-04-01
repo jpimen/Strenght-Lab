@@ -4,11 +4,21 @@ import type { CellState, VariableState } from '../types/spreadsheet';
 const PROGRAM_DRAFT_CACHE_PREFIX = 'ironlog.program.draft.v1';
 const PROGRAM_SELECTIONS_KEY = 'ironlog.program.selection.v1';
 
+export interface ProgramSheet {
+  id: string;
+  name: string;
+  cells: CellState;
+  columns: SheetGridColumn[];
+  rowLabels: Record<string, string>;
+}
+
 export interface ProgramBuilderSnapshot {
   cells: CellState;
   columns: SheetGridColumn[];
   rowLabels: Record<string, string>;
   variables: VariableState;
+  sheets?: ProgramSheet[];
+  activeSheetIndex?: number;
 }
 
 export interface ProgramDraftCache {

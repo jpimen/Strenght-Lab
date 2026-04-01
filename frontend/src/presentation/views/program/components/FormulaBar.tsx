@@ -85,7 +85,7 @@ export const FormulaBar: React.FC<FormulaBarProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-3 px-4 py-2 border-b border-gray-200 bg-white">
+    <div className="flex items-center gap-3 px-4 py-2 border-b border-gray-200 bg-white animate-slideDown delay-100">
       {/* Name Box */}
       <div ref={dropdownRef} className="relative">
         <div className="flex items-center gap-1 w-[120px]">
@@ -94,13 +94,13 @@ export const FormulaBar: React.FC<FormulaBarProps> = ({
             value={activeCell || ''}
             readOnly
             onClick={handleNameBoxClick}
-            className="flex-1 px-2 py-1.5 font-mono text-[11px] border border-gray-300 rounded bg-gray-50 cursor-pointer text-gray-900 hover:bg-gray-100"
+            className="flex-1 px-2 py-1.5 font-mono text-[11px] border border-gray-300 rounded bg-gray-50 cursor-pointer text-gray-900 hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm transition-all duration-200"
             placeholder="SELECT_CELL"
           />
           {showVariablesDropdown && (
             <button
               onClick={handleNameBoxClick}
-              className="p-1 hover:bg-gray-100 cursor-pointer"
+              className="p-1 hover:bg-gray-100 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
             >
               <ChevronDown className="w-4 h-4 text-gray-600" />
             </button>
@@ -109,12 +109,13 @@ export const FormulaBar: React.FC<FormulaBarProps> = ({
 
         {/* Variables Dropdown */}
         {dropdownOpen && showVariablesDropdown && (
-          <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-50 w-max max-h-[300px] overflow-y-auto">
-            {varList.map((variable) => (
+          <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-50 w-max max-h-[300px] overflow-y-auto animate-scaleIn origin-top-left">
+            {varList.map((variable, idx) => (
               <button
                 key={variable.name}
                 onClick={() => handleVariableSelect(variable.name)}
-                className="block w-full text-left px-3 py-2 hover:bg-red-50 text-[11px] font-mono border-b border-gray-100 last:border-0"
+                style={{ animationDelay: `${idx * 30}ms` }}
+                className="block w-full text-left px-3 py-2 hover:bg-red-50 hover:shadow-sm hover:scale-[1.02] text-[11px] font-mono border-b border-gray-100 last:border-0 animate-fadeIn transition-all duration-200 active:scale-95"
               >
                 <span className="text-orange-600 font-bold">{variable.name}</span>
                 <span className="text-gray-500 ml-3">=</span>
@@ -126,7 +127,7 @@ export const FormulaBar: React.FC<FormulaBarProps> = ({
       </div>
 
       {/* fx Label */}
-      <div className="text-[12px] font-mono font-bold text-gray-500 pr-3 border-r border-gray-200">
+      <div className="text-[12px] font-mono font-bold text-gray-500 pr-3 border-r border-gray-200 animate-fadeIn delay-150">
         fx
       </div>
 
@@ -137,16 +138,16 @@ export const FormulaBar: React.FC<FormulaBarProps> = ({
         value={formulaBar}
         onChange={(e) => onFormulaChange(e.target.value)}
         onKeyDown={handleInputKeyDown}
-        className="flex-1 px-3 py-1.5 font-mono text-[12px] bg-gray-50 border-0 outline-none"
+        className="flex-1 px-3 py-1.5 font-mono text-[12px] bg-gray-50 border-0 outline-none focus:bg-white focus:shadow-md transition-all duration-200 animate-fadeIn delay-200"
         placeholder="ENTER_FORMULA_OR_VALUE"
       />
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-2 ml-auto animate-slideLeft delay-250">
         <button
           onClick={handleCommit}
           title="Commit formula (Enter)"
-          className="p-1.5 hover:bg-green-50 text-green-600 hover:text-green-700"
+          className="p-1.5 hover:bg-green-50 text-green-600 hover:text-green-700 hover:scale-110 active:scale-95 transition-all duration-200"
         >
           <svg
             className="w-4 h-4"
@@ -163,7 +164,7 @@ export const FormulaBar: React.FC<FormulaBarProps> = ({
         <button
           onClick={handleCancel}
           title="Cancel (Escape)"
-          className="p-1.5 hover:bg-red-50 text-red-600 hover:text-red-700"
+          className="p-1.5 hover:bg-red-50 text-red-600 hover:text-red-700 hover:scale-110 active:scale-95 transition-all duration-200"
         >
           <CloseIcon className="w-4 h-4" />
         </button>

@@ -81,6 +81,9 @@ npm run dev:backend
 
 ### Compatibility (Mobile)
 - `GET /api/training-logs` - Get training logs
+- `POST /api/training-logs` - Create a training log
+- `PUT /api/training-logs/<id>` - Update a training log
+- `DELETE /api/training-logs/<id>` - Delete a training log
 - `GET /api/cycles` - Get training cycles
 
 ## Configuration

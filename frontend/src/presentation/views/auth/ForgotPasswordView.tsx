@@ -67,9 +67,9 @@ export default function ForgotPasswordView() {
   };
 
   return (
-    <div className="w-full max-w-[420px]">
-      <div className="bg-white border border-gray-200 shadow-sm px-10 py-10">
-        <div className="text-center mb-10">
+    <div className="w-full max-w-[420px] animate-scaleIn">
+      <div className="bg-white border border-gray-200 shadow-sm px-10 py-10 animate-slideUp">
+        <div className="text-center mb-10 animate-fadeIn delay-100">
           <div className="text-[9px] font-mono font-bold tracking-[0.2em] text-gray-400 uppercase">
             RECOVERY MODULE
           </div>
@@ -79,8 +79,8 @@ export default function ForgotPasswordView() {
         </div>
 
         {stage === 'request' && (
-          <form onSubmit={onRequest} className="space-y-5">
-            <div>
+          <form onSubmit={onRequest} className="space-y-5 animate-fadeIn">
+            <div className="animate-slideUp delay-150">
               <div className="text-[9px] font-mono font-bold tracking-widest text-gray-400 uppercase mb-2">
                 SYSTEM_ID_EMAIL
               </div>
@@ -90,13 +90,13 @@ export default function ForgotPasswordView() {
                 autoComplete="email"
                 inputMode="email"
                 type="email"
-                className="w-full border border-gray-200 bg-white px-4 py-3 font-mono text-[11px] tracking-widest uppercase placeholder:text-gray-300 outline-none focus:border-iron-900"
+                className="w-full border border-gray-200 bg-white px-4 py-3 font-mono text-[11px] tracking-widest uppercase placeholder:text-gray-300 outline-none transition-all duration-200 ease-out focus:border-iron-900 focus:ring-2 focus:ring-iron-red focus:ring-offset-2 hover:border-gray-300 hover:shadow-sm"
                 placeholder="USER@DOMAIN.COM"
               />
             </div>
 
             {error && (
-              <div className="text-[10px] font-mono font-bold tracking-widest uppercase text-iron-red">
+              <div className="text-[10px] font-mono font-bold tracking-widest uppercase text-iron-red animate-shake bg-red-50 border border-iron-red px-3 py-2">
                 {error}
               </div>
             )}
@@ -104,16 +104,24 @@ export default function ForgotPasswordView() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-iron-900 text-white uppercase text-[11px] font-bold py-3 px-6 hover:bg-black transition-colors inline-flex items-center justify-center gap-2 tracking-widest disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-iron-900 text-white uppercase text-[11px] font-bold py-3 px-6 transition-all duration-200 ease-out hover:bg-black hover:shadow-lg hover:-translate-y-0.5 active:scale-95 focus:outline-none focus:ring-2 focus:ring-iron-900 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-sm disabled:hover:translate-y-0 inline-flex items-center justify-center gap-2 tracking-widest animate-slideUp delay-200"
             >
-              {isSubmitting ? 'GENERATING...' : 'INITIATE RECOVERY'}
-              <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? (
+                <>
+                  <span className="animate-pulse">GENERATING...</span>
+                </>
+              ) : (
+                <>
+                  INITIATE RECOVERY
+                  <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </>
+              )}
             </button>
 
-            <div className="text-center">
+            <div className="text-center animate-fadeIn delay-250">
               <Link
                 to="/login"
-                className="inline-flex text-[9px] font-mono font-bold tracking-[0.2em] uppercase text-gray-400 hover:text-iron-900 transition-colors"
+                className="inline-flex text-[9px] font-mono font-bold tracking-[0.2em] uppercase text-gray-400 hover:text-iron-900 transition-all duration-200 ease-out active:scale-95 focus:outline-none focus:ring-2 focus:ring-iron-red focus:ring-offset-2 px-2 py-1"
               >
                 RETURN TO LOGIN
               </Link>
@@ -229,16 +237,16 @@ export default function ForgotPasswordView() {
         )}
 
         {stage === 'done' && (
-          <div className="space-y-6 text-center">
-            <div className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-green-600">
+          <div className="space-y-6 text-center animate-scaleIn">
+            <div className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-green-600 animate-pop">
               ACCESS KEY UPDATED.
             </div>
             <Link
               to="/login"
-              className="inline-flex bg-iron-900 text-white uppercase text-[11px] font-bold py-3 px-6 hover:bg-black transition-colors items-center justify-center gap-2 tracking-widest"
+              className="inline-flex bg-iron-900 text-white uppercase text-[11px] font-bold py-3 px-6 transition-all duration-200 ease-out hover:bg-black hover:shadow-lg hover:-translate-y-0.5 active:scale-95 focus:outline-none focus:ring-2 focus:ring-iron-900 focus:ring-offset-2 items-center justify-center gap-2 tracking-widest animate-slideUp"
             >
               RETURN TO LOGIN
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
         )}

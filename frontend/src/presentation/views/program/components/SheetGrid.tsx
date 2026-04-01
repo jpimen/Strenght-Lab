@@ -39,7 +39,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   onCellClick,
   onCellDoubleClick,
   onValueChange,
-  readonlyColumns = ['load'],
+  readonlyColumns = [],
   columns = [],
   onColumnChange,
   rowLabels = {},
@@ -59,9 +59,9 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   const [dragEndCell, setDragEndCell] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [columnWidths, setColumnWidths] = useState<Record<string, string>>({});
-  const [rowHeight, setRowHeight] = useState(40);
+  const [rowHeights, setRowHeights] = useState<Record<string, string>>({});
   const [resizingColumn, setResizingColumn] = useState<null | { key: string; startX: number; startWidth: number }>(null);
-  const [resizingRow, setResizingRow] = useState<null | { startY: number; startHeight: number }>(null);
+  const [resizingRow, setResizingRow] = useState<null | { rowKey: string; startY: number; startHeight: number }>(null);
   
   const dependencyGraph = buildDependencyGraph(cells);
 
@@ -223,13 +223,14 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   );
 
   const handleRowResizeMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+    (rowKey: string, e: React.MouseEvent) => {
       e.stopPropagation();
       e.preventDefault();
       setIsDragging(false);
-      setResizingRow({ startY: e.clientY, startHeight: rowHeight });
+      const currentHeight = Number((rowHeights[rowKey] || '40px').replace('px', '')) || 40;
+      setResizingRow({ rowKey, startY: e.clientY, startHeight: currentHeight });
     },
-    [rowHeight]
+    [rowHeights]
   );
 
   // Handle cell mouse enter - update drag selection
@@ -254,7 +255,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
       if (resizingRow) {
         const deltaY = event.clientY - resizingRow.startY;
         const nextHeight = Math.max(24, resizingRow.startHeight + deltaY);
-        setRowHeight(nextHeight);
+        setRowHeights((prev) => ({ ...prev, [resizingRow.rowKey]: `${nextHeight}px` }));
       }
     },
     [resizingColumn, resizingRow]
@@ -389,17 +390,17 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
           {gridData.map((row, rowIdx) => (
             <tr
               key={`row-${rowIdx}`}
-              className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
-              style={{ minHeight: `${rowHeight}px` }}
+              className="border-b border-gray-100 hover:bg-gray-50/50 hover:shadow-sm transition-all duration-200"
+              style={{ minHeight: rowHeights[row.rowKey] || '40px' }}
             >
               {/* Row label */}
               <td
-                className="w-20 px-2 py-2 bg-gray-50 border-r border-gray-200 text-left relative"
-                style={{ height: `${rowHeight}px` }}
+                className="w-20 px-2 py-2 bg-gray-50 border-r border-gray-200 text-left relative hover:bg-gray-100 transition-colors duration-200"
+                style={{ height: rowHeights[row.rowKey] || '40px' }}
               >
                 <div
                   className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize"
-                  onMouseDown={handleRowResizeMouseDown}
+                  onMouseDown={(e) => handleRowResizeMouseDown(row.rowKey, e)}
                   title="Drag to resize row height"
                 />
                 {editingRowKey === row.rowKey ? (

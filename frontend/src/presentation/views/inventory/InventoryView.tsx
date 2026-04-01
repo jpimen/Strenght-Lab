@@ -111,10 +111,10 @@ export default function InventoryView() {
   const detail = selectedAsset ? assetDetails[selectedAsset] : null;
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col gap-6 pb-12 animate-fade-in">
+    <div className="max-w-7xl mx-auto flex flex-col gap-6 pb-12 animate-fadeIn">
       {/* ── Header ── */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-2">
-        <div>
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-2 animate-slideDown">
+        <div className="animate-slideRight delay-100">
           <h2 className="text-5xl font-black text-iron-900 tracking-tighter leading-[0.95] uppercase">
             EQUIPMENT<br />INVENTORY
           </h2>
@@ -123,7 +123,7 @@ export default function InventoryView() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 animate-slideUp delay-150">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -131,10 +131,10 @@ export default function InventoryView() {
               placeholder="SEARCH ASSETS..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2.5 border border-gray-300 text-xs font-mono tracking-widest focus:outline-none focus:border-iron-900 w-64 placeholder:text-gray-400 bg-white"
+              className="pl-10 pr-4 py-2.5 border border-gray-300 text-xs font-mono tracking-widest focus:outline-none focus:border-iron-900 focus:ring-2 focus:ring-iron-red focus:ring-offset-2 w-64 placeholder:text-gray-400 bg-white hover:border-gray-400 transition-all duration-300"
             />
           </div>
-          <button className="bg-iron-900 text-white uppercase text-[10px] font-mono font-bold py-2.5 px-4 hover:bg-iron-800 transition-colors flex items-center gap-2 tracking-widest">
+          <button className="bg-iron-900 text-white uppercase text-[10px] font-mono font-bold py-2.5 px-4 hover:bg-iron-800 hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 tracking-widest">
             <Plus className="w-3.5 h-3.5" />
             ADD ASSET
           </button>
@@ -142,21 +142,21 @@ export default function InventoryView() {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 animate-slideDown delay-200">
         {tabs.map((tab, i) => (
           <button
             key={tab}
             onClick={() => setActiveTab(i)}
             className={clsx(
-              'text-[11px] font-mono font-bold tracking-widest uppercase px-5 py-3 transition-colors relative',
+              'text-[11px] font-mono font-bold tracking-widest uppercase px-5 py-3 transition-all duration-300 relative hover:text-iron-900',
               activeTab === i
                 ? 'text-iron-900'
-                : 'text-gray-400 hover:text-gray-600'
+                : 'text-gray-400'
             )}
           >
             {tab}
             {activeTab === i && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-iron-900" />
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-iron-900 animate-slideRight" />
             )}
           </button>
         ))}
@@ -166,9 +166,9 @@ export default function InventoryView() {
       <div className="grid grid-cols-12 gap-6">
         {/* Table */}
         <div className={clsx(
-          'panel p-0 overflow-hidden animate-slide-up opacity-0 transition-all',
+          'panel p-0 overflow-hidden animate-slideUp delay-250 transition-all duration-300 hover:shadow-lg',
           selectedAsset ? 'col-span-7' : 'col-span-12'
-        )} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
+        )}>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -182,13 +182,14 @@ export default function InventoryView() {
                 </tr>
               </thead>
               <tbody>
-                {filteredEquipment.map((item) => (
+                {filteredEquipment.map((item, idx) => (
                   <tr
                     key={item.assetId}
                     onClick={() => setSelectedAsset(item.assetId === selectedAsset ? null : item.assetId)}
+                    style={{ animationDelay: `${idx * 25}ms` }}
                     className={clsx(
-                      'border-b border-gray-100 cursor-pointer transition-colors',
-                      selectedAsset === item.assetId ? 'bg-gray-50' : 'hover:bg-gray-50/50'
+                      'border-b border-gray-100 cursor-pointer transition-all duration-200 hover:bg-gray-50/75 animate-fadeIn delay-300',
+                      selectedAsset === item.assetId ? 'bg-gray-50 ring-l-2 ring-iron-red' : 'hover:shadow-sm'
                     )}
                   >
                     <td className={clsx(
@@ -205,7 +206,7 @@ export default function InventoryView() {
                     <td className="py-4 px-5 text-xs font-mono text-gray-500 tracking-wider">{item.inspected}</td>
                     <td className="py-4 px-5 text-center">
                       <span className={clsx(
-                        'text-[10px] font-mono font-bold tracking-widest px-2.5 py-1 border inline-block',
+                        'text-[10px] font-mono font-bold tracking-widest px-2.5 py-1 border inline-block transition-all duration-300 hover:shadow-sm hover:scale-105',
                         statusBadge[item.status]
                       )}>
                         {item.status}
@@ -221,10 +222,9 @@ export default function InventoryView() {
         {/* Asset Detail Panel */}
         {selectedAsset && detail && (
           <div
-            className="col-span-5 panel flex flex-col gap-5"
-            style={{ animation: 'slideInRight 0.35s cubic-bezier(0.16,1,0.3,1) forwards' }}
+            className="col-span-5 panel flex flex-col gap-5 animate-slideRight delay-300"
           >
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start animate-slideUp delay-350">
               <div>
                 <h3 className="text-lg font-black tracking-tighter text-iron-900 uppercase">ASSET DETAIL</h3>
                 <p className="text-[10px] font-mono text-gray-400 tracking-widest mt-0.5">
@@ -233,14 +233,14 @@ export default function InventoryView() {
               </div>
               <button
                 onClick={() => setSelectedAsset(null)}
-                className="text-gray-400 hover:text-iron-900 transition-colors p-1"
+                className="text-gray-400 hover:text-iron-900 hover:scale-110 active:scale-95 transition-all duration-300 p-1"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Equipment Image Placeholder */}
-            <div className="w-full h-40 bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
+            <div className="w-full h-40 bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden animate-slideLeft delay-400">
               <div className="text-center">
                 <Wrench className="w-10 h-10 text-gray-300 mx-auto mb-2" />
                 <span className="text-[9px] font-mono text-gray-400 tracking-widest">ASSET_IMG_PENDING</span>
@@ -248,30 +248,30 @@ export default function InventoryView() {
             </div>
 
             {/* Detail Grid */}
-            <div className="grid grid-cols-2 gap-px bg-gray-200 border border-gray-200">
-              <div className="bg-white p-3">
+            <div className="grid grid-cols-2 gap-px bg-gray-200 border border-gray-200 animate-slideUp delay-450">
+              <div className="bg-white p-3 hover:bg-gray-50 transition-colors duration-200">
                 <div className="text-[9px] font-mono text-gray-400 tracking-widest mb-1">SERIAL NUMBER</div>
                 <div className="text-sm font-black tracking-tight text-iron-900">{detail.serialNumber}</div>
               </div>
-              <div className="bg-white p-3">
+              <div className="bg-white p-3 hover:bg-gray-50 transition-colors duration-200">
                 <div className="text-[9px] font-mono text-gray-400 tracking-widest mb-1">PROCURED</div>
                 <div className="text-sm font-black tracking-tight text-iron-900">{detail.procured}</div>
               </div>
-              <div className="bg-white p-3 col-span-2">
+              <div className="bg-white p-3 col-span-2 hover:bg-gray-50 transition-colors duration-200">
                 <div className="text-[9px] font-mono text-gray-400 tracking-widest mb-1">LOCATION</div>
                 <div className="text-sm font-black tracking-tight text-iron-900">{detail.location}</div>
               </div>
             </div>
 
             {/* Maintenance Log */}
-            <div>
+            <div className="animate-fadeIn delay-500">
               <h4 className="text-xs font-black tracking-widest text-iron-900 uppercase flex items-center gap-2 mb-4">
                 <Clock className="w-4 h-4" />
                 MAINTENANCE_LOG
               </h4>
               <div className="space-y-4">
                 {detail.maintenanceLog.map((entry, i) => (
-                  <div key={i} className="border-l-2 border-gray-200 pl-4">
+                  <div key={i} style={{ animationDelay: `${(i + 5) * 50}ms` }} className="border-l-2 border-gray-200 pl-4 hover:border-iron-red hover:bg-red-50/30 transition-all duration-200 p-2 -ml-2 animate-slideUp">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-[11px] font-mono font-bold tracking-widest text-iron-900">{entry.title}</span>
                       <span className="text-[10px] font-mono text-gray-400 tracking-widest">{entry.date}</span>
@@ -283,12 +283,12 @@ export default function InventoryView() {
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-auto pt-4 flex flex-col gap-2">
-              <button className="bg-iron-red text-white uppercase text-[10px] font-mono font-bold py-3 px-5 hover:bg-red-700 transition-colors flex items-center justify-center gap-2 tracking-widest w-full">
+            <div className="mt-auto pt-4 flex flex-col gap-2 animate-slideUp delay-550">
+              <button className="bg-iron-red text-white uppercase text-[10px] font-mono font-bold py-3 px-5 hover:bg-red-700 hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 tracking-widest w-full">
                 <Tag className="w-3.5 h-3.5" />
                 GEN_LABEL
               </button>
-              <button className="bg-white text-iron-900 border border-gray-300 uppercase text-[10px] font-mono font-bold py-3 px-5 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 tracking-widest w-full">
+              <button className="bg-white text-iron-900 border border-gray-300 uppercase text-[10px] font-mono font-bold py-3 px-5 hover:bg-gray-50 hover:shadow-sm hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 tracking-widest w-full">
                 <FileText className="w-3.5 h-3.5" />
                 SERVICE_REQ
               </button>

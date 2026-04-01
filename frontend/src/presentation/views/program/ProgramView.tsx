@@ -1,15 +1,18 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { User, Calendar, Target, Send, Copy } from 'lucide-react';
+import { User, Calendar, Target, Send, Copy, Table, FileSpreadsheet } from 'lucide-react';
 import { useProgramViewModel } from '../../viewmodels/useProgramViewModel';
 import { ProgramBuilder } from './components/ProgramBuilder';
+import { Spreadsheet } from './components/spreadsheet/Spreadsheet';
 import {
   loadProgramDraftCache,
   saveProgramDraftCache,
+  clearProgramDraftCache,
   saveProgramToSelection,
   type ProgramBuilderSnapshot,
   type ProgramDraftCache,
 } from './utils/programDraftCache';
+import type { SpreadsheetData } from './components/spreadsheet/types';
 
 type DraftMetaState = {
   programName: string;
@@ -35,13 +38,17 @@ export default function ProgramView() {
   const { athleteId } = useParams<{ athleteId: string }>();
   const isNew = athleteId === 'new';
   const cacheScope = athleteId ?? 'new';
+  const navigate = useNavigate();
   const { data, isLoading, publish, isPublishing } = useProgramViewModel(athleteId);
+  const programId = data?.id ?? (isNew ? 'new' : athleteId ?? 'new');
   const [draftMetaByScope, setDraftMetaByScope] = useState<Record<string, DraftMetaState>>({});
   const [builderByScope, setBuilderByScope] = useState<Record<string, ProgramBuilderSnapshot>>({});
   const [cacheStampByScope, setCacheStampByScope] = useState<Record<string, string>>({});
   const [lifecycleByScope, setLifecycleByScope] = useState<Record<string, ProgramDraftCache['lifecycle']>>({});
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [shareCode, setShareCode] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'builder' | 'spreadsheet'>('builder');
+  const [spreadsheetData, setSpreadsheetData] = useState<SpreadsheetData | null>(null);
 
   const cachedDraft = useMemo(
     () => (isNew ? null : loadProgramDraftCache(cacheScope)),
@@ -51,10 +58,10 @@ export default function ProgramView() {
   const baseMeta: DraftMetaState = isNew
     ? NEW_PROGRAM_DEFAULTS
     : {
-        programName: data?.name ?? '',
-        athleteName: data?.athleteName ?? '',
-        goal: data?.goal ?? '',
-        durationWeeks: data?.durationWeeks ?? 4,
+        programName: data?.name ?? cachedDraft?.programName ?? '',
+        athleteName: data?.athleteName ?? cachedDraft?.athleteName ?? '',
+        goal: data?.goal ?? cachedDraft?.goal ?? '',
+        durationWeeks: data?.durationWeeks ?? cachedDraft?.durationWeeks ?? 4,
       };
 
   const scopedMeta = draftMetaByScope[cacheScope] ?? baseMeta;
@@ -66,6 +73,8 @@ export default function ProgramView() {
 
   const activeBuilderState = builderByScope[cacheScope];
   const lastKnownBuilderState = activeBuilderState ?? cachedDraft?.builder ?? null;
+  const currentBuilderState: ProgramBuilderSnapshot =
+    lastKnownBuilderState ?? { cells: {}, columns: [], rowLabels: {}, variables: {} };
   const currentLifecycle = lifecycleByScope[cacheScope] ?? cachedDraft?.lifecycle ?? 'draft';
   const cachedAt = cacheStampByScope[cacheScope] ?? cachedDraft?.updatedAt ?? null;
 
@@ -78,7 +87,9 @@ export default function ProgramView() {
           current.cells === state.cells &&
           current.columns === state.columns &&
           current.rowLabels === state.rowLabels &&
-          current.variables === state.variables
+          current.variables === state.variables &&
+          JSON.stringify(current.sheets) === JSON.stringify(state.sheets) &&
+          current.activeSheetIndex === state.activeSheetIndex
         ) {
           return prev;
         }
@@ -135,8 +146,10 @@ export default function ProgramView() {
   const persistProgram = (
     builderState: ProgramBuilderSnapshot,
     notice: string,
-    lifecycle: ProgramDraftCache['lifecycle']
+    lifecycle: ProgramDraftCache['lifecycle'],
+    explicitScope?: string,
   ) => {
+    const scope = explicitScope ?? cacheScope;
     const payload: ProgramDraftCache = {
       programName: displayName,
       athleteName: displayAthlete,
@@ -146,71 +159,100 @@ export default function ProgramView() {
       builder: builderState,
       updatedAt: new Date().toISOString(),
     };
-    saveProgramDraftCache(cacheScope, payload);
+    saveProgramDraftCache(scope, payload);
     setCacheStampByScope((prev) => ({
       ...prev,
-      [cacheScope]: payload.updatedAt,
+      [scope]: payload.updatedAt,
     }));
     setLifecycleByScope((prev) => ({
       ...prev,
-      [cacheScope]: lifecycle,
+      [scope]: lifecycle,
     }));
 
-    if (lifecycle === 'created' || lifecycle === 'published') {
+    const selectionStatus = lifecycle === 'published' ? 'published' : 'created';
+
+    if (lifecycle === 'created' || lifecycle === 'published' || (!isNew && lifecycle === 'draft')) {
       saveProgramToSelection({
-        athleteId: !isNew ? athleteId : undefined,
+        athleteId: !isNew ? athleteId : explicitScope,
         athleteName: displayAthlete,
         programName: displayName,
         goal: displayGoal,
         durationWeeks: normalizedDurationWeeks,
-        status: lifecycle,
-        sourceScope: cacheScope,
+        status: selectionStatus,
+        sourceScope: scope,
       });
     }
 
     setSaveNotice(notice);
   };
 
-  const handleSaveDraft = () => {
-    if (!lastKnownBuilderState) return;
-    persistProgram(lastKnownBuilderState, 'DRAFT SAVED', 'draft');
+  const handleSaveDraft = async () => {
+    // Update server-side copy for already created programs
+    if (!isNew && data?.id) {
+      try {
+        await publish({
+          id: data.id,
+          name: displayName,
+          athleteName: displayAthlete,
+          goal: displayGoal,
+          durationWeeks: normalizedDurationWeeks,
+          status: 'CREATED',
+          exercises: [],
+          weeks: [],
+          activeWeek: '',
+          builderData: currentBuilderState,
+        }, currentBuilderState);
+      } catch (err) {
+        console.error('Save draft to server failed', err);
+      }
+    }
+
+    persistProgram(currentBuilderState, 'DRAFT SAVED', 'draft');
   };
 
   const handleCreateOrPublish = async (source: 'button' | 'shortcut' = 'button') => {
-    if (!lastKnownBuilderState) return;
-    
-    // Call the actual API if we're publishing
+    const builderState = currentBuilderState;
+    let backendProgramId: string | undefined;
+
     try {
       const result = await publish({
-        id: isNew ? 'new' : (athleteId || ''),
+        id: programId,
         name: displayName,
         athleteName: displayAthlete,
         goal: displayGoal,
         durationWeeks: normalizedDurationWeeks,
         status: 'PUBLISHED',
-        exercises: [], // Not used for publishing, we send builderData
+        exercises: [],
         weeks: [],
-        activeWeek: ''
-      }, lastKnownBuilderState);
-      
+        activeWeek: '',
+        builderData: builderState,
+      }, builderState);
+
       if (result?.shareCode) {
         setShareCode(result.shareCode);
+      }
+      if (result?.id) {
+        backendProgramId = result.id;
       }
     } catch (err) {
       console.error('Publish failed', err);
     }
 
-    persistProgram(
-      lastKnownBuilderState,
-      isNew
-        ? source === 'shortcut'
-          ? 'PROGRAM CREATED & SAVED (CTRL+S)'
-          : 'PROGRAM CREATED & SAVED'
-        : source === 'shortcut'
-          ? 'PROGRAM PUBLISHED & SAVED (CTRL+S)'
-          : 'PROGRAM PUBLISHED & SAVED',
-      isNew ? 'created' : 'published'
-    );
+    const lifecycle = isNew ? 'created' : 'published';
+    const saveMessage = isNew
+      ? source === 'shortcut'
+        ? 'PROGRAM CREATED & SAVED (CTRL+S)'
+        : 'PROGRAM CREATED & SAVED'
+      : source === 'shortcut'
+        ? 'PROGRAM PUBLISHED & SAVED (CTRL+S)'
+        : 'PROGRAM PUBLISHED & SAVED';
+
+    persistProgram(builderState, saveMessage, lifecycle, backendProgramId);
+
+    if (isNew && backendProgramId) {
+      clearProgramDraftCache('new');
+      navigate(`/program-builder/editor/${backendProgramId}`, { replace: true });
+    }
   };
 
   useEffect(() => {
@@ -219,8 +261,7 @@ export default function ProgramView() {
       if (event.key.toLowerCase() !== 's') return;
       event.preventDefault();
 
-      if (!lastKnownBuilderState) return;
-
+      const builderState = currentBuilderState;
       const lifecycle: ProgramDraftCache['lifecycle'] = isNew ? 'created' : 'published';
       const payload: ProgramDraftCache = {
         programName: displayName,
@@ -228,7 +269,7 @@ export default function ProgramView() {
         goal: displayGoal,
         durationWeeks: normalizedDurationWeeks,
         lifecycle,
-        builder: lastKnownBuilderState,
+        builder: builderState,
         updatedAt: new Date().toISOString(),
       };
 
@@ -268,7 +309,7 @@ export default function ProgramView() {
     normalizedDurationWeeks,
   ]);
 
-  if (!isNew && (isLoading || !data)) {
+  if (!isNew && (isLoading || (!data && !cachedDraft))) {
     return <div className="p-8 text-iron-red animate-pulse">LOADING_PROGRAM_DATA...</div>;
   }
 
@@ -411,14 +452,48 @@ export default function ProgramView() {
         </div>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="flex border-b border-gray-200 bg-gray-50">
+        <button
+          onClick={() => setActiveTab('builder')}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+            activeTab === 'builder'
+              ? 'border-b-2 border-orange-600 text-orange-600 bg-white'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+          }`}
+        >
+          <Table className="w-4 h-4" />
+          Program Builder
+        </button>
+        <button
+          onClick={() => setActiveTab('spreadsheet')}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+            activeTab === 'spreadsheet'
+              ? 'border-b-2 border-orange-600 text-orange-600 bg-white'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+          }`}
+        >
+          <FileSpreadsheet className="w-4 h-4" />
+          Spreadsheet
+        </button>
+      </div>
+
       <div className="flex-1 min-h-0 overflow-hidden">
-        <ProgramBuilder
-          key={cacheScope}
-          initialWeeks={normalizedDurationWeeks}
-          initialState={cachedDraft?.builder ?? null}
-          startEmpty={isNew}
-          onStateChange={handleBuilderStateChange}
-        />
+        {activeTab === 'builder' ? (
+          <ProgramBuilder
+            key={cacheScope}
+            initialWeeks={normalizedDurationWeeks}
+            initialState={cachedDraft?.builder ?? null}
+            startEmpty={isNew}
+            onStateChange={handleBuilderStateChange}
+          />
+        ) : (
+          <Spreadsheet
+            initialData={spreadsheetData || undefined}
+            onDataChange={setSpreadsheetData}
+            className="h-full"
+          />
+        )}
       </div>
     </div>
   );

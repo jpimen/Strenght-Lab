@@ -78,10 +78,11 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   }, [activeCell, dependencyGraph]);
   const displayColumns = useMemo(() => (columns.length > 0 ? columns : []), [columns]);
   const zoomScale = zoomLevel / 100;
+  const textScale = zoomScale * 1.1;
   const rowLabelWidth = Math.max(60, Math.round(80 * zoomScale));
   const cellMinHeight = Math.max(28, Math.round(40 * zoomScale));
-  const headerFontSize = Math.max(8, Math.round(9 * zoomScale));
-  const rowLabelFontSize = Math.max(8, Math.round(9 * zoomScale));
+  const headerFontSize = Math.max(9, Math.round(9 * textScale));
+  const rowLabelFontSize = Math.max(9, Math.round(9 * textScale));
 
   const scaleSize = useCallback((value: string | undefined, fallback: number) => {
     if (!value) return `${Math.round(fallback * zoomScale)}px`;

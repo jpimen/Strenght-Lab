@@ -116,7 +116,8 @@ export const SheetCell: React.FC<SheetCellProps> = ({
   const displayValue = livePreview || cellData?.resolved || '';
   const isFormulaBased = cellData?.raw.startsWith('=') || false;
   const zoomScale = zoomLevel / 100;
-  const cellFontSize = Math.max(9, Math.round(11 * zoomScale));
+  const textScale = zoomScale * 1.1;
+  const cellFontSize = Math.max(10, Math.round(11 * textScale));
   const indicatorSize = Math.max(6, Math.round(8 * zoomScale));
 
   return (
@@ -156,7 +157,8 @@ export const SheetCell: React.FC<SheetCellProps> = ({
             onChange={handleInputChange}
             onKeyDown={handleInputKeyDown}
             onBlur={handleInputBlur}
-            className="w-full px-0 py-0 font-mono text-[11px] bg-white border-0 outline-none"
+            className="w-full px-0 py-0 font-mono bg-white border-0 outline-none"
+            style={{ fontSize: `${cellFontSize}px` }}
           />
           {/* Live preview tooltip */}
           {editValue.startsWith('=') && livePreview && (

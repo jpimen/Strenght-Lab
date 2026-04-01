@@ -76,14 +76,6 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   }, [activeCell, dependencyGraph]);
   const displayColumns = useMemo(() => (columns.length > 0 ? columns : []), [columns]);
 
-  useEffect(() => {
-    const initialWidths: Record<string, string> = {};
-    displayColumns.forEach((col) => {
-      initialWidths[col.key] = columnWidths[col.key] || col.width;
-    });
-    setColumnWidths(initialWidths);
-  }, [displayColumns]);
-
   const startEditColumn = (col: SheetGridColumn) => {
     if (!onColumnChange) return;
     setEditingColumnKey(col.key);

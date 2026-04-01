@@ -3,7 +3,7 @@
  * Individual cell in the spreadsheet grid
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import type { CellData } from './types';
 
 interface SpreadsheetCellProps {
@@ -11,6 +11,7 @@ interface SpreadsheetCellProps {
   data: CellData;
   isSelected: boolean;
   isActive: boolean;
+  isEditing: boolean;
   width: number;
   height: number;
   onClick: (event: React.MouseEvent) => void;
@@ -24,6 +25,7 @@ export const SpreadsheetCell: React.FC<SpreadsheetCellProps> = ({
   data,
   isSelected,
   isActive,
+  isEditing,
   width,
   height,
   onClick,
@@ -31,23 +33,10 @@ export const SpreadsheetCell: React.FC<SpreadsheetCellProps> = ({
   onMouseEnter,
   onChange
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const cellRef = useRef<HTMLDivElement>(null);
 
   const displayValue = data.computed || data.value || '';
-
-  // Handle cell activation
-  useEffect(() => {
-    if (isActive && !isEditing) {
-      setIsEditing(true);
-      setEditValue(data.value || '');
-    } else if (!isActive && isEditing) {
-      setIsEditing(false);
-      setEditValue('');
-    }
-  }, [isActive, isEditing, data.value]);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -71,24 +60,21 @@ export const SpreadsheetCell: React.FC<SpreadsheetCellProps> = ({
     onMouseEnter(event);
   }, [onMouseEnter]);
 
-  const handleInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setEditValue(event.target.value);
-  }, []);
-
   const handleInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault();
-      onChange(editValue);
+      onChange(event.currentTarget.value);
     } else if (event.key === 'Escape') {
       event.preventDefault();
-      setIsEditing(false);
-      setEditValue('');
+      event.currentTarget.value = data.value || '';
+      onChange(data.value || '');
+      event.currentTarget.blur();
     }
-  }, [editValue, onChange]);
+  }, [data.value, onChange]);
 
-  const handleInputBlur = useCallback(() => {
-    onChange(editValue);
-  }, [editValue, onChange]);
+  const handleInputBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
+    onChange(event.currentTarget.value);
+  }, [onChange]);
 
   const cellStyle: React.CSSProperties = {
     width: `${width}px`,
@@ -122,8 +108,7 @@ export const SpreadsheetCell: React.FC<SpreadsheetCellProps> = ({
         <input
           ref={inputRef}
           type="text"
-          value={editValue}
-          onChange={handleInputChange}
+          defaultValue={data.value || ''}
           onKeyDown={handleInputKeyDown}
           onBlur={handleInputBlur}
           className="cell-input"

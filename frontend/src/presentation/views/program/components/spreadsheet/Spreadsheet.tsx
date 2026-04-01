@@ -69,7 +69,6 @@ export const Spreadsheet: React.FC<SpreadsheetProps> = ({
   // Keyboard navigation
   useKeyboardNavigation({
     activeCell,
-    selection,
     onCellSelect: selectCell,
     onRangeSelect: selectRange,
     onStartEdit: startEditing,
@@ -207,6 +206,7 @@ export const Spreadsheet: React.FC<SpreadsheetProps> = ({
           data={data}
           activeCell={activeCell}
           selection={selection}
+          isEditing={isEditing}
           onCellClick={handleCellClick}
           onCellDoubleClick={handleCellDoubleClick}
           onCellChange={handleCellChange}

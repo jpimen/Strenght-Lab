@@ -4,7 +4,7 @@
  * Integrates all sub-components into a cohesive program building experience
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   RotateCcw,
   RotateCw,
@@ -81,11 +81,15 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
   startEmpty = false,
   onStateChange,
 }) => {
-  const defaultColumns = getDefaultColumns();
+  const defaultColumns = useMemo(() => getDefaultColumns(), []);
 
-  const defaultVariables: VariableState = startEmpty
-    ? {}
-    : {
+  const defaultVariables: VariableState = useMemo(
+    () => {
+      if (startEmpty) {
+        return {} as VariableState;
+      }
+
+      return {
         SQ_1RM: 315,
         BP_1RM: 225,
         DL_1RM: 405,
@@ -93,20 +97,27 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
         BASE_VOL: 4,
         WEEK: 1,
       };
+    },
+    [startEmpty]
+  );
 
-  const initialSheet: ProgramSheet = {
-    id: 'sheet-1',
-    name: 'Sheet 1',
-    cells: initialState?.cells ?? buildInitialCells(initialWeeks),
-    columns: initialState?.columns && initialState.columns.length > 0 ? initialState.columns : defaultColumns,
-    rowLabels: initialState?.rowLabels ?? {},
-  };
+  const initialSheet: ProgramSheet = useMemo(
+    () => ({
+      id: 'sheet-1',
+      name: 'Sheet 1',
+      cells: initialState?.cells ?? buildInitialCells(initialWeeks),
+      columns: initialState?.columns && initialState.columns.length > 0 ? initialState.columns : defaultColumns,
+      rowLabels: initialState?.rowLabels ?? {},
+    }),
+    [defaultColumns, initialState?.cells, initialState?.columns, initialState?.rowLabels, initialWeeks]
+  );
 
   // Initialize sheets from saved state or create default single sheet
-  const initialSheets = initialState?.sheets && initialState.sheets.length > 0 
-    ? initialState.sheets 
-    : [initialSheet];
-  
+  const initialSheets = useMemo(
+    () => (initialState?.sheets && initialState.sheets.length > 0 ? initialState.sheets : [initialSheet]),
+    [initialSheet, initialState?.sheets]
+  );
+
   const initialActiveSheetIndex = initialState?.activeSheetIndex ?? 0;
   const activeSheet = initialSheets[initialActiveSheetIndex] ?? initialSheets[0];
 

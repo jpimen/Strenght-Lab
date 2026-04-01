@@ -17,7 +17,7 @@ interface SpreadsheetState {
   darkMode: boolean;
 }
 
-type SpreadsheetAction =
+export type SpreadsheetAction =
   | { type: 'UPDATE_CELL'; cellId: string; data: Partial<CellData> }
   | { type: 'SELECT_CELL'; cellId: string }
   | { type: 'SELECT_RANGE'; cellIds: string[] }

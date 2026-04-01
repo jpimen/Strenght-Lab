@@ -3,12 +3,13 @@
  * Provides spreadsheet action functions
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, type Dispatch } from 'react';
 import type { SpreadsheetData, CellData, CellFormat } from '../components/spreadsheet/types';
+import type { SpreadsheetAction } from './useSpreadsheetState';
 
 interface UseSpreadsheetActionsProps {
   data: SpreadsheetData;
-  dispatch: React.Dispatch<any>;
+  dispatch: Dispatch<SpreadsheetAction>;
 }
 
 export function useSpreadsheetActions({ data, dispatch }: UseSpreadsheetActionsProps) {

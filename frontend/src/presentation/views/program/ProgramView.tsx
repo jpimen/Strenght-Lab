@@ -73,8 +73,10 @@ export default function ProgramView() {
 
   const activeBuilderState = builderByScope[cacheScope];
   const lastKnownBuilderState = activeBuilderState ?? cachedDraft?.builder ?? null;
-  const currentBuilderState: ProgramBuilderSnapshot =
-    lastKnownBuilderState ?? { cells: {}, columns: [], rowLabels: {}, variables: {} };
+  const currentBuilderState = useMemo<ProgramBuilderSnapshot>(
+    () => lastKnownBuilderState ?? { cells: {}, columns: [], rowLabels: {}, variables: {} },
+    [lastKnownBuilderState]
+  );
   const currentLifecycle = lifecycleByScope[cacheScope] ?? cachedDraft?.lifecycle ?? 'draft';
   const cachedAt = cacheStampByScope[cacheScope] ?? cachedDraft?.updatedAt ?? null;
 
@@ -301,11 +303,11 @@ export default function ProgramView() {
   }, [
     athleteId,
     cacheScope,
+    currentBuilderState,
     displayAthlete,
     displayGoal,
     displayName,
     isNew,
-    lastKnownBuilderState,
     normalizedDurationWeeks,
   ]);
 

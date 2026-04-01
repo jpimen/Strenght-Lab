@@ -40,7 +40,7 @@ export class ApiProgramRepository implements IProgramRepository {
     return request<ProgramData>(`/programs/${programId}`);
   }
 
-  async createProgram(input: ProgramData, builderData: any): Promise<{ shareCode: string; id: string }> {
+  async createProgram(input: ProgramData, builderData: unknown): Promise<{ shareCode: string; id: string }> {
     return request<{ shareCode: string; id: string }>('/programs/create', {
       method: 'POST',
       body: JSON.stringify({
@@ -54,7 +54,7 @@ export class ApiProgramRepository implements IProgramRepository {
     });
   }
 
-  async updateProgram(programId: string, input: ProgramData, builderData: any): Promise<{ shareCode: string; id: string }> {
+  async updateProgram(programId: string, input: ProgramData, builderData: unknown): Promise<{ shareCode: string; id: string }> {
     return request<{ shareCode: string; id: string }>(`/programs/${programId}`, {
       method: 'PUT',
       body: JSON.stringify({
@@ -68,7 +68,7 @@ export class ApiProgramRepository implements IProgramRepository {
     });
   }
 
-  async publishProgram(input: ProgramData, builderData: any): Promise<{ shareCode: string; id: string }> {
+  async publishProgram(input: ProgramData, builderData: unknown): Promise<{ shareCode: string; id: string }> {
     if (input.id && input.id !== 'new') {
       return this.updateProgram(input.id, input, builderData);
     }

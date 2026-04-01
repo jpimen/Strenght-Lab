@@ -140,7 +140,7 @@ export class FormulaEngine {
       // In production, use a proper math expression parser
       const result = new Function(`"use strict"; return (${processedExpression})`)();
       return typeof result === 'number' ? result : 0;
-    } catch (error) {
+    } catch {
       throw new Error(`Arithmetic error: ${expression}`);
     }
   }

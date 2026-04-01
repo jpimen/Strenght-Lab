@@ -7,7 +7,6 @@ import { useEffect, useCallback } from 'react';
 
 interface UseKeyboardNavigationProps {
   activeCell?: string;
-  selection?: string[];
   onCellSelect: (cellId: string) => void;
   onRangeSelect: (startCell: string, endCell: string) => void;
   onStartEdit: (cellId: string) => void;
@@ -17,7 +16,6 @@ interface UseKeyboardNavigationProps {
 
 export function useKeyboardNavigation({
   activeCell,
-  selection = [],
   onCellSelect,
   onRangeSelect,
   onStartEdit,
@@ -186,7 +184,7 @@ export function useKeyboardNavigation({
         }
         break;
     }
-  }, [activeCell, selection, onCellSelect, onRangeSelect, onStartEdit, onStopEdit, getAdjacentCell]);
+  }, [activeCell, onCellSelect, onRangeSelect, onStartEdit, onStopEdit, getAdjacentCell]);
 
   useEffect(() => {
     const gridElement = gridRef.current;

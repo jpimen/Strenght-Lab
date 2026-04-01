@@ -37,7 +37,7 @@ export function useProgramViewModel(athleteId?: string) {
     };
   }, [athleteId]);
 
-  const publish = async (input: ProgramData, builderData: any) => {
+  const publish = async (input: ProgramData, builderData: unknown) => {
     setIsPublishing(true);
     try {
       const result = await programRepository.publishProgram(input, builderData);

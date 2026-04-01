@@ -11,6 +11,7 @@ interface SpreadsheetGridProps {
   data: SpreadsheetData;
   activeCell?: string;
   selection?: string[];
+  isEditing?: boolean;
   onCellClick: (cellId: string, event: React.MouseEvent) => void;
   onCellDoubleClick: (cellId: string) => void;
   onCellChange: (cellId: string, value: string) => void;
@@ -20,6 +21,7 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
   data,
   activeCell,
   selection = [],
+  isEditing = false,
   onCellClick,
   onCellDoubleClick,
   onCellChange
@@ -148,6 +150,7 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
                     data={cellData}
                     isSelected={isSelected}
                     isActive={isActive}
+                    isEditing={isEditing && isActive}
                     width={columnWidths[colIndex] || 100}
                     height={rowHeights[rowIndex] || 24}
                     onClick={(event) => handleMouseDown(cellId, event)}

@@ -135,8 +135,8 @@ export const SheetCell: React.FC<SheetCellProps> = ({
         !isReadonly && 'cursor-cell hover:shadow-sm hover:border-gray-300',
         isActive && 'ring-2 ring-orange-500 ring-inset z-10',
         isSelected && !isActive && 'bg-blue-50 ring-1 ring-blue-300',
-        hasError && 'bg-amber-50 ring-1 ring-amber-500 animate-pulse',
-        isFormula && !hasError && 'bg-orange-50/5',
+        hasError && 'bg-white ring-1 ring-amber-500 animate-pulse',
+        isFormula && !hasError && 'bg-white',
         isDependency && !isActive && 'ring-1 ring-blue-400',
         isDependent && !isActive && 'ring-1 ring-orange-400'
       )}
@@ -180,16 +180,6 @@ export const SheetCell: React.FC<SheetCellProps> = ({
           {/* Formula indicator (red triangle) */}
           {isFormulaBased && !hasError && (
             <div className="ml-1 w-2 h-2 bg-orange-600 rounded-tr-sm" title={cellData?.raw} />
-          )}
-
-          {/* Error indicator */}
-          {hasError && (
-            <div
-              className="ml-1 text-amber-600 font-bold cursor-help"
-              title={cellData?.error || 'Unknown error'}
-            >
-              !
-            </div>
           )}
         </div>
       )}

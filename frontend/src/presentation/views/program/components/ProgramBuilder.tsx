@@ -37,37 +37,46 @@ import {
 import { getAutocompleteSuggestions } from '../utils/autocomplete';
 import type { AutocompleteOption } from '../utils/autocomplete';
 import type { ProgramBuilderSnapshot, ProgramSheet } from '../utils/programDraftCache';
+import { getVisibleProgramRows } from '../utils/gridRows';
 
 const ZOOM_OPTIONS = [50, 75, 90, 100, 110, 125, 150, 175, 200];
 
-const buildInitialCells = (weeks: number): CellState => {
-  const newCells: CellState = {};
-  for (let w = 1; w <= weeks; w++) {
-    for (let d = 1; d <= 3; d++) {
-      for (let r = 0; r < 5; r++) {
-        const baseKey = `W${w}_D${d}_R${r}`;
-        newCells[`${baseKey}_sets`] = { raw: '', resolved: '', error: null };
-        newCells[`${baseKey}_reps`] = { raw: '', resolved: '', error: null };
-        newCells[`${baseKey}_intensity`] = { raw: '', resolved: '', error: null };
-        newCells[`${baseKey}_rest`] = { raw: '', resolved: '', error: null };
-        newCells[`${baseKey}_load`] = { raw: '', resolved: '', error: null };
-      }
-    }
-  }
-  return newCells;
+const buildInitialCells = (): CellState => ({});
+
+const LEGACY_COLUMN_LABELS: Record<string, string> = {
+  week_day: 'WEEK/DAY',
+  exercise: 'EXERCISE',
+  sets: 'SETS',
+  reps: 'REPS',
+  intensity: 'INTENSITY (%)',
+  rest: 'REST (MIN)',
+  load: 'LOAD (kg)',
+  notes: 'NOTES',
 };
 
 function getDefaultColumns(): SheetGridColumn[] {
   return [
-    { key: 'week_day', label: 'WEEK/DAY', width: '100px' },
-    { key: 'exercise', label: 'EXERCISE', width: '180px' },
-    { key: 'sets', label: 'SETS', width: '70px' },
-    { key: 'reps', label: 'REPS', width: '70px' },
-    { key: 'intensity', label: 'INTENSITY (%)', width: '90px' },
-    { key: 'rest', label: 'REST (MIN)', width: '90px' },
-    { key: 'load', label: 'LOAD (kg)', width: '90px' },
-    { key: 'notes', label: 'NOTES', width: '200px' },
+    { key: 'week_day', label: '', width: '100px' },
+    { key: 'exercise', label: '', width: '180px' },
+    { key: 'sets', label: '', width: '70px' },
+    { key: 'reps', label: '', width: '70px' },
+    { key: 'intensity', label: '', width: '90px' },
+    { key: 'rest', label: '', width: '90px' },
+    { key: 'load', label: '', width: '90px' },
+    { key: 'notes', label: '', width: '200px' },
   ];
+}
+
+function normalizeColumns(columns: SheetGridColumn[] | undefined, defaults: SheetGridColumn[]): SheetGridColumn[] {
+  if (!columns || columns.length === 0) {
+    return defaults;
+  }
+
+  return columns.map((column, index) => ({
+    ...column,
+    label: LEGACY_COLUMN_LABELS[column.key] === column.label ? '' : column.label,
+    width: column.width || defaults[index]?.width || '90px',
+  }));
 }
 
 interface ProgramBuilderProps {
@@ -108,17 +117,21 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
     () => ({
       id: 'sheet-1',
       name: 'Sheet 1',
-      cells: initialState?.cells ?? buildInitialCells(initialWeeks),
-      columns: initialState?.columns && initialState.columns.length > 0 ? initialState.columns : defaultColumns,
+      cells: initialState?.cells ?? buildInitialCells(),
+      columns: normalizeColumns(initialState?.columns, defaultColumns),
       rowLabels: initialState?.rowLabels ?? {},
     }),
-    [defaultColumns, initialState?.cells, initialState?.columns, initialState?.rowLabels, initialWeeks]
+    [defaultColumns, initialState?.cells, initialState?.columns, initialState?.rowLabels]
   );
 
   // Initialize sheets from saved state or create default single sheet
   const initialSheets = useMemo(
-    () => (initialState?.sheets && initialState.sheets.length > 0 ? initialState.sheets : [initialSheet]),
-    [initialSheet, initialState?.sheets]
+    () =>
+      (initialState?.sheets && initialState.sheets.length > 0 ? initialState.sheets : [initialSheet]).map((sheet) => ({
+        ...sheet,
+        columns: normalizeColumns(sheet.columns, defaultColumns),
+      })),
+    [defaultColumns, initialSheet, initialState?.sheets]
   );
 
   const initialActiveSheetIndex = initialState?.activeSheetIndex ?? 0;
@@ -129,7 +142,9 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
 
   // Core display state (current active sheet)
   const [cells, setCells] = useState<CellState>(activeSheet?.cells ?? initialSheet.cells);
-  const [columns, setColumns] = useState<SheetGridColumn[]>(activeSheet?.columns ?? initialSheet.columns);
+  const [columns, setColumns] = useState<SheetGridColumn[]>(
+    normalizeColumns(activeSheet?.columns, defaultColumns)
+  );
   const [rowLabels, setRowLabels] = useState<Record<string, string>>(activeSheet?.rowLabels ?? initialSheet.rowLabels);
   const [variables, setVariables] = useState<VariableState>(() => initialState?.variables ?? defaultVariables);
 
@@ -195,7 +210,7 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
     if (!sheet) return;
     setActiveSheetIndex(index);
     setCells(sheet.cells);
-    setColumns(sheet.columns);
+    setColumns(normalizeColumns(sheet.columns, defaultColumns));
     setRowLabels(sheet.rowLabels);
     setActiveCell(null);
     setFormulaBar('');
@@ -206,7 +221,7 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
     const newSheet: ProgramSheet = {
       id: `sheet-${Date.now()}`,
       name: `Sheet ${newSheetIndex + 1}`,
-      cells: buildInitialCells(initialWeeks),
+      cells: buildInitialCells(),
       columns: getDefaultColumns(),
       rowLabels: {},
     };
@@ -367,14 +382,17 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
 
     try {
       const parsed = JSON.parse(saved);
-      const loadedSheets: ProgramSheet[] = parsed.sheets ?? [initialSheet];
+      const loadedSheets: ProgramSheet[] = (parsed.sheets ?? [initialSheet]).map((sheet: ProgramSheet) => ({
+        ...sheet,
+        columns: normalizeColumns(sheet.columns, defaultColumns),
+      }));
       const loadedIndex = Math.min(parsed.activeSheetIndex ?? 0, loadedSheets.length - 1);
 
       setSheets(loadedSheets);
       setActiveSheetIndex(loadedIndex);
       const active = loadedSheets[loadedIndex];
       setCells(active.cells);
-      setColumns(active.columns);
+      setColumns(normalizeColumns(active.columns, defaultColumns));
       setRowLabels(active.rowLabels);
       setVariables(parsed.variables ?? defaultVariables);
     } catch (error) {
@@ -384,20 +402,28 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
 
   const exportToCSV = () => {
     const rows: string[] = [];
-    const header = columns.map((col) => col.label).join(',');
+    const header = columns.map((col) => col.label || col.key).join(',');
     rows.push(header);
 
-    const maxRows = Math.max(100, initialWeeks * 3 * 5);
-    for (let r = 0; r < maxRows; r++) {
+    const visibleRows = getVisibleProgramRows({
+      cells,
+      rowLabels,
+      weekCount: initialWeeks,
+      dayCount: 3,
+      minimumRowsPerDay: 0,
+      trailingBlankRows: 0,
+    });
+
+    visibleRows.forEach(({ rowKey }) => {
       const rowCells = columns.map((col) => {
-        const cellKey = `${r}_${col.key}`;
+        const cellKey = `${rowKey}_${col.key}`;
         const cell = cells[cellKey];
         const value = cell?.resolved || cell?.raw || '';
         const escaped = String(value).replace(/"/g, '""');
         return escaped.includes(',') ? `"${escaped}"` : escaped;
       });
       rows.push(rowCells.join(','));
-    }
+    });
 
     const csvData = rows.join('\n');
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
@@ -649,10 +675,11 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
               setRowLabels(nextRowLabels);
               updateActiveSheet({ rowLabels: nextRowLabels });
             }}
-            showDefaultRowLabels
+            showDefaultRowLabels={false}
             weekCount={initialWeeks}
             dayCount={3}
-            exerciseCount={5}
+            minimumRowsPerDay={1}
+            trailingBlankRows={1}
             zoomLevel={zoomLevel}
           />
 

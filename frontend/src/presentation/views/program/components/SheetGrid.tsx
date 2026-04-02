@@ -7,6 +7,7 @@ import { useRef, useCallback, useMemo, useState, useEffect } from 'react';
 import { SheetCell } from './SheetCell';
 import type { CellState, SelectionRange } from '../types/spreadsheet';
 import { buildDependencyGraph, getDependencies, getDependents } from '../utils/formulaEngine';
+import { getVisibleProgramRows } from '../utils/gridRows';
 
 export interface SheetGridColumn {
   key: string;
@@ -29,7 +30,8 @@ interface SheetGridProps {
   showDefaultRowLabels?: boolean;
   weekCount?: number;
   dayCount?: number;
-  exerciseCount?: number;
+  minimumRowsPerDay?: number;
+  trailingBlankRows?: number;
   zoomLevel?: number;
 }
 
@@ -48,7 +50,8 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   showDefaultRowLabels = true,
   weekCount = 4,
   dayCount = 3,
-  exerciseCount = 5,
+  minimumRowsPerDay = 1,
+  trailingBlankRows = 1,
   zoomLevel = 100,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -100,7 +103,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
 
   const commitEditColumn = () => {
     if (editingColumnKey && onColumnChange) {
-      const next: Partial<SheetGridColumn> = { label: columnEditValue.trim() || ' ' };
+      const next: Partial<SheetGridColumn> = { label: columnEditValue.trim() };
       if (columnWidthValue.trim()) {
         next.width = columnWidthValue.trim();
       }
@@ -138,32 +141,44 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
 
   // Generate cell keys for the grid
   const generateGridData = useCallback(() => {
+    const visibleRows = getVisibleProgramRows({
+      cells,
+      rowLabels,
+      weekCount,
+      dayCount,
+      minimumRowsPerDay,
+      trailingBlankRows,
+    });
     const data: Array<{
       rowLabel: string;
       rowKey: string;
       cells: Array<{ key: string; field: string }>;
     }> = [];
 
-    for (let w = 1; w <= weekCount; w++) {
-      for (let d = 1; d <= dayCount; d++) {
-        for (let r = 0; r < exerciseCount; r++) {
-          const baseKey = `W${w}_D${d}_R${r}`;
-          const rowLabel = rowLabels[baseKey] ?? (showDefaultRowLabels && r === 0 ? `W${w} D${d}` : '');
+    visibleRows.forEach(({ week, day, row, rowKey }) => {
+      const rowLabel = rowLabels[rowKey] ?? (showDefaultRowLabels && row === 0 ? `W${week} D${day}` : '');
 
-          data.push({
-            rowLabel,
-            rowKey: baseKey,
-            cells: displayColumns.map((col) => ({
-              key: `${baseKey}_${col.key}`,
-              field: col.key,
-            })),
-          });
-        }
-      }
-    }
+      data.push({
+        rowLabel,
+        rowKey,
+        cells: displayColumns.map((col) => ({
+          key: `${rowKey}_${col.key}`,
+          field: col.key,
+        })),
+      });
+    });
 
     return data;
-  }, [weekCount, dayCount, exerciseCount, displayColumns, rowLabels, showDefaultRowLabels]);
+  }, [
+    cells,
+    weekCount,
+    dayCount,
+    minimumRowsPerDay,
+    trailingBlankRows,
+    displayColumns,
+    rowLabels,
+    showDefaultRowLabels,
+  ]);
 
   const gridData = useMemo(() => generateGridData(), [generateGridData]);
 

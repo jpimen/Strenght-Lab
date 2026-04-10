@@ -3,6 +3,7 @@
  */
 
 export { ProgramBuilder } from './ProgramBuilder';
+export { MenuBar } from './MenuBar';
 export { FormulaBar } from './FormulaBar';
 export { VariablesPanel } from './VariablesPanel';
 export { SheetGrid } from './SheetGrid';

@@ -82,7 +82,7 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
   const displayColumns = useMemo(() => (columns.length > 0 ? columns : []), [columns]);
   const zoomScale = zoomLevel / 100;
   const textScale = zoomScale * 1.1;
-  const rowLabelWidth = Math.max(60, Math.round(80 * zoomScale));
+  const rowLabelWidth = Math.max(35, Math.round(40 * zoomScale));
   const cellMinHeight = Math.max(28, Math.round(40 * zoomScale));
   const headerFontSize = Math.max(9, Math.round(9 * textScale));
   const rowLabelFontSize = Math.max(9, Math.round(9 * textScale));
@@ -357,58 +357,43 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
       ref={scrollContainerRef}
       className="flex-1 overflow-auto bg-white"
     >
-      <table className="border-collapse w-full">
+      <table className="border-collapse bg-white" style={{ tableLayout: 'fixed', width: '100%' }}>
+        {/* Column widths definition */}
+        <colgroup>
+          <col style={{ width: `${rowLabelWidth}px` }} />
+          {displayColumns.map((col) => (
+            <col key={col.key} style={{ width: scaleSize(columnWidths[col.key] || col.width, 90) }} />
+          ))}
+        </colgroup>
+
         {/* Header */}
-        <thead className="sticky top-0 z-20 bg-white">
-          <tr className="border-b-2 border-gray-300">
+        <thead className="sticky top-0 z-20 bg-gray-100">
+          <tr className="border-b border-gray-300 h-6">
+            {/* Top-left corner cell */}
             <th
-              className="bg-gray-50 border-r border-gray-200"
-              style={{ width: `${rowLabelWidth}px` }}
+              className="bg-gray-100 border-r border-gray-300 text-center flex-shrink-0"
             />
-            {displayColumns.map((col) => (
-              <th
-                key={col.key}
-                style={{ width: scaleSize(columnWidths[col.key] || col.width, 90), position: 'relative' }}
-                className="px-3 py-2 text-left font-mono font-bold tracking-widest uppercase text-gray-700 bg-gray-50 border-r border-gray-200 last:border-0"
-              >
-              <div style={{ fontSize: `${headerFontSize}px` }}>
-              <div
-                className="absolute right-0 top-0 h-full w-1 cursor-col-resize"
-                onMouseDown={(e) => handleColResizeMouseDown(col.key, e)}
-              />
-                {editingColumnKey === col.key ? (
-                  <div className="flex flex-col gap-1">
-                    <input
-                      value={columnEditValue}
-                      onChange={(e) => setColumnEditValue(e.target.value)}
-                      className="w-full bg-white border border-gray-300 text-[10px] font-mono px-1 py-0.5 uppercase"
-                      autoFocus
-                    />
-                    <input
-                      value={columnWidthValue}
-                      onChange={(e) => setColumnWidthValue(e.target.value)}
-                      placeholder="e.g. 120px"
-                      className="w-full bg-white border border-gray-300 text-[10px] font-mono px-1 py-0.5"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') commitEditColumn();
-                        if (e.key === 'Escape') cancelEditColumn();
-                      }}
-                      onBlur={commitEditColumn}
-                    />
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onDoubleClick={() => startEditColumn(col)}
-                    className="w-full text-left"
-                    title="Double-click to rename or resize column"
+            {displayColumns.map((col, colIdx) => {
+              const colLetter = String.fromCharCode(65 + (colIdx % 26));
+              return (
+                <th
+                  key={col.key}
+                  className="px-1 py-0 text-center font-mono font-bold text-[11px] text-gray-700 bg-gray-100 border-r border-gray-300 select-none relative group flex-shrink-0"
+                  style={{ position: 'relative' }}
+                >
+                  <div 
+                    style={{ fontSize: `${headerFontSize}px` }}
+                    className="flex items-center justify-center h-full min-h-6"
                   >
-                    {col.label}
-                  </button>
-                )}
-                </div>
-              </th>
-            ))}
+                    <span className="text-gray-500">{colLetter}</span>
+                  </div>
+                  <div
+                    className="absolute right-0 top-0 h-full w-0.5 cursor-col-resize hover:bg-blue-500 hover:w-1 transition-all duration-150"
+                    onMouseDown={(e) => handleColResizeMouseDown(col.key, e)}
+                  />
+                </th>
+              );
+            })}
           </tr>
         </thead>
 
@@ -417,42 +402,22 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
           {gridData.map((row, rowIdx) => (
             <tr
               key={`row-${rowIdx}`}
-              className="border-b border-gray-100 hover:bg-gray-50/50 hover:shadow-sm transition-all duration-200"
-              style={{ minHeight: scaleSize(rowHeights[row.rowKey] || '40px', 40) }}
+              className="border-b border-gray-200 hover:bg-gray-50/30 transition-colors duration-75"
+              style={{ height: scaleSize(rowHeights[row.rowKey] || '32px', 32) }}
             >
-              {/* Row label */}
+              {/* Row number */}
               <td
-                className="px-2 py-2 bg-gray-50 border-r border-gray-200 text-left relative hover:bg-gray-100 transition-colors duration-200"
-                style={{ height: scaleSize(rowHeights[row.rowKey] || '40px', 40), width: `${rowLabelWidth}px` }}
+                className="px-1 py-0 bg-gray-100 border-r border-gray-300 text-center font-mono text-[11px] text-gray-500 font-bold select-none relative group flex-shrink-0"
+                style={{ height: scaleSize(rowHeights[row.rowKey] || '32px', 32), width: `${rowLabelWidth}px` }}
               >
+                <div className="flex items-center justify-center h-full">
+                  <span>{rowIdx + 1}</span>
+                </div>
                 <div
-                  className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 cursor-row-resize hover:bg-blue-500 hover:h-1 transition-all duration-150"
                   onMouseDown={(e) => handleRowResizeMouseDown(row.rowKey, e)}
                   title="Drag to resize row height"
                 />
-                {editingRowKey === row.rowKey ? (
-                  <input
-                    value={rowEditValue}
-                    onChange={(e) => setRowEditValue(e.target.value)}
-                    onBlur={commitEditRow}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') commitEditRow();
-                      if (e.key === 'Escape') cancelEditRow();
-                    }}
-                    className="w-full bg-white border border-gray-300 text-[10px] font-mono px-1 py-0.5"
-                    autoFocus
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    onDoubleClick={() => startEditRow(row.rowKey, row.rowLabel || row.rowKey)}
-                    className="w-full text-left font-mono font-bold text-gray-500"
-                    style={{ fontSize: `${rowLabelFontSize}px`, minHeight: `${cellMinHeight}px` }}
-                    title="Double-click to rename row"
-                  >
-                    {row.rowLabel}
-                  </button>
-                )}
               </td>
 
               {/* Cells */}
@@ -486,7 +451,6 @@ export const SheetGrid: React.FC<SheetGridProps> = ({
                     onKeyDown={handleKeyDown}
                     onMouseDown={handleCellMouseDown}
                     onMouseEnter={handleCellMouseEnter}
-                    width={scaleSize(columnWidths[cellItem.field] || colDef?.width, 90)}
                     zoomLevel={zoomLevel}
                   />
                 );

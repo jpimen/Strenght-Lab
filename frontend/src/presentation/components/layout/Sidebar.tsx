@@ -43,14 +43,14 @@ export default function Sidebar() {
                 to={item.path}
                 className={({ isActive }) =>
                   clsx(
-                    'flex items-center gap-4 px-6 py-4 text-xs font-bold tracking-wider relative',
+                    'flex items-center gap-4 px-6 py-3 text-xs font-bold tracking-wider relative min-h-12',
                     'transition-all duration-200 ease-out',
                     'hover:shadow-sm hover:bg-gray-50 hover:translate-x-1',
                     'active:scale-95',
-                    'focus:outline-none focus:ring-2 focus:ring-iron-red focus:ring-inset',
+                    'focus:outline-none focus:ring-2 focus:ring-iron-red focus:ring-inset rounded-r-md',
                     isActive 
                       ? 'text-iron-900 bg-gray-50 border-l-1.5 border-l-iron-red' 
-                      : 'text-gray-500'
+                      : 'text-gray-700 hover:text-gray-900'
                   )
                 }
               >
@@ -77,14 +77,14 @@ export default function Sidebar() {
 
       <div className="mt-auto p-6 border-t border-gray-200 animate-slideUp delay-300">
         <div className="flex items-center gap-3 group">
-          <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-400 border border-gray-200 overflow-hidden transition-all duration-200 ease-out group-hover:border-iron-red group-hover:bg-red-50 group-hover:text-iron-red">
+          <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-700 border border-gray-200 overflow-hidden transition-all duration-200 ease-out group-hover:border-iron-red group-hover:bg-red-50 group-hover:text-iron-red">
             <UserSquare2 className="w-6 h-6 transition-transform duration-300" />
           </div>
           <div className="min-w-0">
             <div className="text-[10px] font-bold text-iron-900 uppercase tracking-wider truncate">
               {user?.fullName ?? 'ACTIVE SESSION'}
             </div>
-            <div className="text-[10px] text-gray-500 font-mono tracking-widest truncate uppercase">
+            <div className="text-[10px] text-gray-600 font-mono tracking-widest truncate uppercase">
               {user?.email ?? 'UNIDENTIFIED'}
             </div>
           </div>
@@ -95,8 +95,9 @@ export default function Sidebar() {
             await logOut();
             navigate('/login', { replace: true });
           }}
-          className="mt-4 w-full inline-flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 bg-white text-[10px] font-mono font-bold tracking-widest uppercase text-gray-500 transition-all duration-200 ease-out hover:text-iron-red hover:border-iron-red hover:shadow-md active:scale-95 focus:outline-none focus:ring-2 focus:ring-iron-red focus:ring-offset-2"
+          className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 bg-white text-[10px] font-mono font-bold tracking-widest uppercase text-gray-700 transition-all duration-200 ease-out hover:text-iron-red hover:border-iron-red hover:shadow-md active:scale-95 focus:outline-none focus:ring-2 focus:ring-iron-red focus:ring-offset-2 rounded-md min-h-10"
           type="button"
+          aria-label="Log out"
         >
           <LogOut className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
           LOG_OUT

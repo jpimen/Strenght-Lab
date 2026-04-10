@@ -16,6 +16,7 @@ import {
   Moon,
   Sun
 } from 'lucide-react';
+import { MenuBar } from './MenuBar';
 import { FormulaBar } from './FormulaBar';
 import { VariablesPanel } from './VariablesPanel';
 import { SheetGrid } from './SheetGrid';
@@ -170,7 +171,7 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
   const [autocompletePos] = useState({ x: 0, y: 0 });
 
   // UI panels
-  const [showVariablesPanel, setShowVariablesPanel] = useState(true);
+  const [showVariablesPanel, setShowVariablesPanel] = useState(false);
   const [showErrorPanel, setShowErrorPanel] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(100);
@@ -518,8 +519,18 @@ export const ProgramBuilder: React.FC<ProgramBuilderProps> = ({
       ref={containerRef}
       className={`flex flex-col h-full w-full ${darkMode ? 'bg-slate-900 text-white' : 'bg-white text-black'}`}
     >
+      {/* Google Sheets-like Menu Bar */}
+      <MenuBar
+        fileName="Strength Lab Program"
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onSaveFile={saveToLocal}
+        undoDisabled={past.length === 0}
+        redoDisabled={future.length === 0}
+      />
+
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50 animate-slideDown">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50 animate-slideDown">
         <div className="flex items-center gap-4">
           {/* Undo/Redo */}
           <div className="flex items-center gap-2 animate-slideRight delay-100">

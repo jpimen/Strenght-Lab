@@ -23,7 +23,6 @@ interface SheetCellProps {
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>, key: string) => void;
   onMouseDown?: (key: string, e: React.MouseEvent) => void;
   onMouseEnter?: (key: string) => void;
-  width?: string;
   zoomLevel?: number;
 }
 
@@ -43,7 +42,6 @@ export const SheetCell: React.FC<SheetCellProps> = ({
   onKeyDown,
   onMouseDown,
   onMouseEnter,
-  width = 'auto',
   zoomLevel = 100,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -122,7 +120,6 @@ export const SheetCell: React.FC<SheetCellProps> = ({
 
   return (
     <td
-      style={{ width }}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onMouseDown={(e) => {
@@ -136,20 +133,20 @@ export const SheetCell: React.FC<SheetCellProps> = ({
         }
       }}
       className={clsx(
-        'relative px-3 py-2 font-sans border border-gray-200 transition-all duration-200 select-none',
+        'relative px-2 py-1 font-sans border-r border-b border-gray-200 transition-all duration-75 select-none h-8',
         isReadonly && 'bg-gray-50 cursor-default',
-        !isReadonly && 'cursor-cell hover:shadow-sm hover:border-gray-300',
-        isActive && 'ring-2 ring-orange-500 ring-inset z-10',
-        isSelected && !isActive && 'bg-blue-50 ring-1 ring-blue-300',
-        hasError && 'bg-white ring-1 ring-amber-500 animate-pulse',
+        !isReadonly && 'cursor-cell hover:bg-gray-50',
+        isActive && 'ring-2 ring-blue-500 ring-inset z-10 bg-white',
+        isSelected && !isActive && 'bg-white',
+        hasError && 'bg-white ring-2 ring-red-500 animate-pulse',
         isFormula && !hasError && 'bg-white',
-        isDependency && !isActive && 'ring-1 ring-blue-400',
-        isDependent && !isActive && 'ring-1 ring-orange-400'
+        isDependency && !isActive && 'ring-1 ring-blue-300',
+        isDependent && !isActive && 'ring-1 ring-orange-300'
       )}
     >
       {isEditing ? (
         // Edit mode
-        <div className="relative">
+        <div className="relative w-full h-full">
           <input
             ref={inputRef}
             type="text"
@@ -157,7 +154,7 @@ export const SheetCell: React.FC<SheetCellProps> = ({
             onChange={handleInputChange}
             onKeyDown={handleInputKeyDown}
             onBlur={handleInputBlur}
-            className="w-full px-0 py-0 font-mono bg-white border-0 outline-none"
+            className="w-full h-full px-1 py-0 font-sans bg-white border-0 outline-none focus:ring-0"
             style={{ fontSize: `${cellFontSize}px` }}
           />
           {/* Live preview tooltip */}
@@ -172,23 +169,24 @@ export const SheetCell: React.FC<SheetCellProps> = ({
         </div>
       ) : (
         // Display mode
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-1 text-ellipsis overflow-hidden">
           <span
             className={clsx(
-              'font-mono',
-              isReadonly && 'font-bold text-gray-700',
-              hasError && 'text-amber-600',
+              'font-mono truncate',
+              isReadonly && 'font-semibold text-gray-700',
+              hasError && 'text-red-600',
               !hasError && 'text-gray-900'
             )}
             style={{ fontSize: `${cellFontSize}px` }}
+            title={displayValue}
           >
             {displayValue}
           </span>
 
-          {/* Formula indicator (red triangle) */}
+          {/* Formula indicator (small orange square) */}
           {isFormulaBased && !hasError && (
             <div
-              className="ml-1 bg-orange-600 rounded-tr-sm"
+              className="ml-auto flex-shrink-0 bg-orange-500 rounded"
               style={{ width: `${indicatorSize}px`, height: `${indicatorSize}px` }}
               title={cellData?.raw}
             />
